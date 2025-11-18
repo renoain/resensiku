@@ -1,0 +1,285 @@
+/* General Styling */
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: #F8F5F2;
+    color: #8B7E74;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* Header & Navigation */
+header {
+    padding: 20px 80px;
+    border-bottom: 1px solid #EAE5E1;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.social-icons img {
+    width: 20px;
+    margin-right: 15px;
+    opacity: 0.7;
+}
+
+.user-icon img {
+    width: 30px;
+    opacity: 0.7;
+}
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-left {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+}
+
+.nav-left .logo img {
+    height: 40px;
+    display: block;
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    opacity: 0.6;
+}
+
+.search-bar {
+    width: 350px;
+    padding: 12px 20px 12px 50px;
+    border-radius: 25px;
+    border: none;
+    background-color: #EDE9E4;
+}
+
+.search-bar:focus {
+    outline: none;
+}
+
+.nav-right ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    gap: 40px;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.nav-right .active {
+    font-weight: 600;
+    color: #6D6158;
+}
+
+/* Main Page Layout */
+.review-page {
+    display: flex;
+    max-width: 1200px;
+    margin: 50px auto;
+    padding: 0 40px;
+    gap: 80px;
+}
+
+.left-column {
+    flex: 0 0 280px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.right-column {
+    flex: 1;
+}
+
+/* Left Column Styling */
+.book-cover {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    margin-bottom: 25px;
+    /* border: 6px solid #FFFFFF; <--- BARIS INI DIHAPUS ATAU DIKOMENTARI */
+    box-sizing: border-box; /* Tetap pertahankan ini jika diperlukan */
+}
+
+.status-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #8B7E74;
+    color: #F8F5F2;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.user-rating-display {
+    text-align: center;
+}
+
+.rating-stars-input .star-icon {
+    font-size: 42px;
+    margin: 0 3px;
+    line-height: 1;
+}
+
+.star-icon.filled {
+    color: #8B7E74;
+}
+
+.user-score {
+    font-size: 16px;
+    font-weight: 500;
+    margin-top: 15px;
+}
+
+/* Right Column Styling */
+.book-title {
+    font-size: 52px;
+    margin: -10px 0 0 0;
+    color: #6D6158;
+    font-weight: 600;
+}
+
+.book-author {
+    font-size: 18px;
+    margin: 5px 0 20px 0;
+}
+
+.rating-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    margin-bottom: 30px;
+}
+
+.rating-stars-display span {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.star-filled {
+    color: #8B7E74;
+}
+
+.star-empty {
+    color: #d1c8c1;
+}
+
+.rating-score {
+    font-weight: bold;
+    font-size: 18px;
+    color: #6D6158;
+}
+
+.synopsis {
+    line-height: 1.8;
+    text-align: justify;
+    margin-bottom: 30px;
+}
+
+.book-meta {
+    margin-bottom: 40px;
+}
+
+.book-meta .genres {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.book-meta .genres span {
+    font-weight: 500;
+}
+
+.genre-tag {
+    background-color: #EDE9E4;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 12px;
+}
+
+.book-meta p {
+    font-size: 14px;
+    margin: 5px 0;
+}
+
+/* Your Review Section */
+.your-review-section {
+    border-top: 1px solid #EDE9E4;
+    padding-top: 30px;
+}
+
+.section-title {
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 1px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.review-card {
+    text-align: center;
+}
+
+.review-author .avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #EAE5E1;
+}
+
+.review-text {
+    max-width: 600px;
+    margin: 20px auto;
+    line-height: 1.8;
+    text-align: center;
+}
+
+.review-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 550px;
+    margin: 20px auto 0;
+    border-top: 1px solid #EDE9E4;
+    padding-top: 20px;
+}
+
+.review-actions .likes img {
+    width: 20px;
+    margin-right: 15px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+
+.review-actions .edit-icon {
+    width: 20px;
+    cursor: pointer;
+    opacity: 0.7;
+}

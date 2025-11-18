@@ -1,0 +1,316 @@
+    /* Import CSS dasar dari halaman sebelumnya jika ada */
+/* @import url('style.css'); */
+
+/* General Styling */
+body {
+    margin: 0;
+    font-family: 'Poppins', sans-serif;
+    background-color: #F8F5F2;
+    color: #8B7E74;
+}
+
+a { text-decoration: none; color: inherit; }
+
+/* Header & Nav (Asumsikan sama seperti sebelumnya) */
+header { padding: 20px 80px; }
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.social-icons img { width: 20px; margin-right: 15px; opacity: 0.7; }
+.user-icon img { width: 30px; opacity: 0.7; }
+.navbar { display: flex; justify-content: space-between; align-items: center; }
+.nav-left .logo img { height: 40px; }
+.nav-center { flex-grow: 1; display: flex; justify-content: center; }
+.search-container { position: relative; width: 450px; height: 45px; background-image: url('search-bar-bg.png'); background-size: cover; }
+.search-bar { width: 100%; height: 100%; padding: 0 20px 0 50px; border: none; background-color: transparent; color: #8B7E74; font-family: 'Poppins', sans-serif; font-size: 14px; box-sizing: border-box; }
+.search-bar:focus { outline: none; }
+.nav-right ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 40px; font-size: 14px; font-weight: 500; }
+.nav-right .active { font-weight: 600; color: #6D6158; }
+
+/* Main Review Page Layout */
+.review-page {
+    display: flex;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 40px;
+    gap: 60px;
+}
+
+.left-column {
+    flex: 0 0 250px; /* Lebar tetap untuk kolom kiri */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.right-column {
+    flex: 1; /* Kolom kanan mengisi sisa ruang */
+}
+
+/* Left Column Styling */
+.book-cover {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.status-dropdown-container {
+    position: relative;
+    width: 100%;
+}
+
+.status-button {
+    width: 100%;
+    padding: 12px;
+    background-color: #8B7E74;
+    color: #F8F5F2;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.dropdown-content {
+    display: none; /* Disembunyikan, muncul saat hover/klik (JS) */
+    position: absolute;
+    background-color: #FFFFFF;
+    width: calc(100% - 2px);
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+    border: 1px solid #EDE9E4;
+    border-radius: 8px;
+    z-index: 1;
+    margin-top: 5px;
+    padding: 10px 0;
+}
+
+/* Simulasi dropdown terbuka */
+.status-dropdown-container:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-content label {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 20px;
+    cursor: pointer;
+}
+
+.dropdown-content label:hover { background-color: #F8F5F2; }
+.dropdown-content input[type="radio"] { accent-color: #8B7E74; }
+.rate-this-book { text-align: center; margin-top: 25px; }
+
+/* Mengatur gaya bintang di bagian "Rate this book" */
+.rating-stars .star-icon {
+    font-size: 42px;         /* INI YANG MEMBUAT BINTANG JADI BESAR */
+    color: #d1c8c1;          /* Warna bintang saat kosong */
+    cursor: pointer;         /* Tanda bahwa bintang bisa diklik */
+    margin: 0 3px;           /* Jarak antar bintang */
+    line-height: 1;          /* Memperbaiki alignment vertikal */
+    transition: color 0.2s ease-in-out; /* Animasi perubahan warna */
+}
+
+/* Gaya untuk bintang yang sudah terisi (diaktifkan oleh JavaScript) */
+.rating-stars .star-icon.filled {
+    color: #88776A;
+}
+
+/* Right Column Styling */
+.book-title { font-size: 48px; margin: 0; color: #6D6158; }
+.book-author { font-size: 18px; margin: 5px 0 20px 0; }
+.rating-summary { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    font-size: 14px; 
+    margin-bottom: 25px; 
+}
+
+.rating-stars-full span {
+    font-size: 24px; /* Ubah ukuran bintang di sini */
+    line-height: 1;  /* Menjaga alignment */
+}
+
+.star-full, .star-half {
+    color: #8B7E74; /* Warna bintang yang terisi */
+}
+
+.star-empty {
+    color: #d1c8c1; /* Warna bintang yang kosong */
+}
+
+.rating-score { 
+    font-weight: bold; 
+    font-size: 18px; 
+}
+
+.rating-score { font-weight: bold; font-size: 18px; }
+.synopsis { line-height: 1.7; text-align: justify; margin-bottom: 30px; }
+
+.book-meta .genres { margin-bottom: 15px; }
+.book-meta .genres span { margin-right: 10px; }
+.genre-tag { background-color: #EDE9E4; padding: 5px 15px; border-radius: 15px; font-size: 12px; }
+.book-meta p { font-size: 14px; margin: 5px 0; }
+
+/* Review Section */
+.review-section { margin-top: 30px; border-top: 1px solid #EDE9E4; padding-top: 30px; }
+.write-review-btn { background-color: #8B7E74; color: #F8F5F2; border: none; padding: 10px 25px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+
+.review-input-box { position: relative; margin-top: 15px; }
+.review-input-box textarea { width: 100%; height: 120px; border: 1px solid #EDE9E4; border-radius: 8px; resize: vertical; padding: 15px; box-sizing: border-box; background-color: #FFFFFF; font-family: 'Poppins', sans-serif; }
+.submit-review-icon { position: absolute; bottom: 15px; right: 15px; background: none; border: none; cursor: pointer; }
+.submit-review-icon img { width: 24px; }
+
+/* Submitted Review Section (dari Gambar 3) */
+.submitted-review-section { margin-top: 30px; border-top: 1px solid #EDE9E4; padding-top: 30px; }
+.user-rating-display { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+.user-rating-display .stars img { width: 30px; }
+.user-rating-display span { font-size: 18px; font-weight: bold; }
+.your-review-card { padding-top: 20px; }
+.your-review-card h3 { font-weight: 500; font-size: 14px; letter-spacing: 1px; margin-bottom: 20px; }
+.review-author .avatar { width: 50px; border-radius: 50%; }
+.review-text { margin-top: 15px; line-height: 1.7; }
+.review-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+.review-actions .likes img { width: 20px; margin-right: 15px; cursor: pointer; opacity: 0.7; }
+.review-actions .edit-icon { width: 20px; cursor: pointer; opacity: 0.7; }
+
+
+/* Dropdown Menu Styling for BOOKSHELF */
+/* Catatan: Pastikan .nav-right ul sudah memiliki 'position: relative;' di kode Anda */
+.nav-right ul {
+    position: relative; /* Wajib ada di elemen induk (<ul>) */
+}
+
+.dropdown-li {
+    position: relative; /* Wajib ada di elemen induk dropdown (<li>) */
+}
+
+.dropdown-menu {
+    display: none; /* Kunci: Menyembunyikan dropdown secara default. */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: #EDE9E4; 
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
+    z-index: 10; 
+    margin-top: 10px; 
+    padding: 10px 0;
+    border-radius: 5px;
+}
+
+.dropdown-menu a {
+    color: #8B7E74;
+    padding: 12px 16px;
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.dropdown-menu a:hover {
+    background-color: #D1C8C1;
+}
+
+/* KUNCI INTERAKSI: Tampilkan dropdown saat kursor mengarah ke elemen induk */
+.dropdown-li:hover .dropdown-menu {
+    display: block;
+}
+
+/* review CSS.css */
+
+/* --- BARU: Gaya untuk Tombol Cancel --- */
+.cancel-review-btn {
+    background-color: #373A40; 
+    color: #F8F5F2;
+    border: 1px solid #282b30; 
+    padding: 10px 25px; 
+    border-radius: 8px; 
+    font-size: 14px; 
+    cursor: pointer; 
+}
+
+/* --- BARU: Gaya untuk Hitungan Kata --- */
+.word-count-display {
+    position: absolute;
+    bottom: 20px; /* Sedikit lebih ke atas dari bawah */
+    left: 20px;  /* Jarak dari kiri */
+    font-size: 12px;
+    color: #A9A9A9; 
+    z-index: 10;
+}
+
+/* --- BARU: Gaya untuk Pop-up Notifikasi --- */
+.popup-container {
+    display: none; 
+    position: fixed;
+    z-index: 1000; 
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden; 
+    background-color: rgba(0,0,0,0.4); 
+    backdrop-filter: blur(3px); 
+}
+
+.popup-content {
+    background-color: #EDE9E4; 
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px;
+    border: 1px solid #8B7E74;
+    border-radius: 12px;
+    width: 300px;
+    text-align: center;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.popup-icon {
+    font-size: 50px;
+    color: #8B7E74;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.popup-content h3 {
+    color: #6D6158;
+    margin: 0;
+    font-weight: 600;
+}
+
+/* review CSS.css */
+
+.rating-stars {
+    /* KUNCI 1: Membalik urutan visual bintang. Bintang 1 (data-rating="1") sekarang di sebelah kanan. */
+    direction: rtl; 
+    /* Agar bintang 5 tetap muncul di paling kanan saat di-hover/klik */
+    display: inline-block;
+}
+
+.rating-stars .star-icon {
+    /* Bintang individu harus dikembalikan ke arah LTR agar simbol bintang tetap benar */
+    direction: ltr; 
+    
+    /* Warna bintang saat kosong */
+    color: #d1c8c1; 
+    font-size: 42px;
+    cursor: pointer; 
+    margin: 0 3px; 
+    line-height: 1;
+    transition: color 0.2s ease-in-out; 
+}
+
+/* KUNCI 2: Efek Hover (Ini mengisi semua bintang di sebelah kiri bintang yang di-hover) */
+/* Karena urutan elemen terbalik (rtl), :hover ~ star-icon berarti "semua bintang ke kiri" */
+.rating-stars .star-icon:hover,
+.rating-stars .star-icon:hover ~ .star-icon {
+    color: #88776A; /* Warna cokelat yang lebih gelap saat di-hover */
+}
+
+/* KUNCI 3: Gaya untuk bintang yang sudah terisi (setelah diklik oleh JavaScript) */
+.rating-stars .star-icon.filled {
+    color: #88776A;
+}

@@ -1,0 +1,318 @@
+/* General Styling */
+body {
+  margin: 0;
+  font-family: "Poppins", sans-serif;
+  background-color: #f8f5f2;
+  color: #8b7e74;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Header & Navigation */
+header {
+  padding-top: 20px;
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.social-icons img {
+  width: 20px;
+  margin-right: 15px;
+  opacity: 0.7;
+}
+
+.user-icon {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-icon img {
+  width: 30px;
+  opacity: 0.7;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.nav-left .logo img {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.search-container {
+  position: relative;
+}
+
+.search-form {
+  display: flex;
+  align-items: center;
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  opacity: 0.6;
+}
+
+.search-bar {
+  width: 300px;
+  padding: 10px 20px 10px 50px;
+  border-radius: 20px;
+  border: none;
+  background-color: #ede9e4;
+}
+
+.search-bar:focus {
+  outline: none;
+}
+
+.nav-right ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 40px;
+  font-weight: 500;
+}
+
+.nav-right a.active {
+  color: #6d6158;
+}
+
+/* Dropdown Menu */
+.dropdown-li {
+  position: relative;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #eae5e1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+  margin-top: 15px;
+}
+
+.dropdown-menu a {
+  color: #8b7e74;
+  padding: 12px 16px;
+  display: block;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+.dropdown-menu a:hover,
+.dropdown-menu a.active {
+  background-color: #d1c8c1;
+  color: #6d6158;
+}
+
+.dropdown-li:hover .dropdown-menu {
+  display: block;
+}
+
+/* Main Content Styling */
+main {
+  padding-top: 80px;
+}
+
+.section-title {
+  text-align: center;
+  padding: 15px 0;
+  border-top: 1px solid #eae5e1;
+  border-bottom: 1px solid #eae5e1;
+  margin-bottom: 50px;
+}
+
+.section-title h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 4px;
+  color: #6d6158;
+}
+
+/* Book List Styling */
+.book-list {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.book-entry {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+  padding-bottom: 30px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid #eae5e1;
+}
+
+.book-cover img {
+  width: 150px;
+  height: auto;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.book-details {
+  flex: 1;
+}
+
+.book-title {
+  font-size: 32px;
+  color: #6d6158;
+  margin: 0 0 5px 0;
+  font-weight: 600;
+}
+
+.book-title a:hover {
+  color: #8b7e74;
+}
+
+.book-author {
+  font-size: 16px;
+  margin: 0 0 15px 0;
+}
+
+.rating-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.rating-summary .stars {
+  font-size: 20px;
+  color: #d1c8c1;
+}
+
+.rating-summary .stars .filled {
+  color: #8b7e74;
+}
+
+.rating-summary .score {
+  font-weight: bold;
+  color: #6d6158;
+}
+
+.book-meta {
+  margin-bottom: 20px;
+}
+
+.genres {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.genre-tag {
+  background-color: #ede9e4;
+  padding: 5px 15px;
+  border-radius: 15px;
+  font-size: 12px;
+}
+
+.book-meta p {
+  font-size: 14px;
+  margin: 5px 0;
+  color: #8b7e74;
+}
+
+.book-actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.status-form select {
+  padding: 8px 12px;
+  border: 1px solid #eae5e1;
+  border-radius: 5px;
+  background-color: white;
+  font-family: "Poppins", sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-review {
+  background-color: #8b7e74;
+  color: #f8f5f2;
+  padding: 8px 16px;
+  border-radius: 5px;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.btn-review:hover {
+  background-color: #6d6158;
+}
+
+/* Empty Shelf Styling */
+.empty-shelf {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-shelf img {
+  width: 100px;
+  opacity: 0.5;
+  margin-bottom: 20px;
+}
+
+.empty-shelf h3 {
+  font-size: 24px;
+  color: #6d6158;
+  margin: 0 0 10px 0;
+}
+
+.empty-shelf p {
+  font-size: 16px;
+  margin: 0 0 30px 0;
+  color: #8b7e74;
+}
+
+.btn-discover {
+  background-color: #8b7e74;
+  color: #f8f5f2;
+  padding: 12px 30px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.btn-discover:hover {
+  background-color: #6d6158;
+}
