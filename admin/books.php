@@ -2,7 +2,7 @@
 require_once '../config/constants.php';
 require_once '../config/database.php';
 
-// Check if user is logged in and is admin
+
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'admin') {
     header("Location: ../login.php");
     exit();
@@ -14,7 +14,7 @@ $db = $database->getConnection();
 $action = $_GET['action'] ?? 'list';
 $message = '';
 
-// Handle form actions
+// form actions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($action == 'add' || $action == 'edit') {
         $title = trim($_POST['title']);
@@ -22,9 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $synopsis = trim($_POST['synopsis']);
         $publication_year = $_POST['publication_year'] ?: NULL;
         $page_count = $_POST['page_count'] ?: NULL;
-        $genres = trim($_POST['genres']) ?? '';
+        $is_featured = isset($_POST['is_featured']) ? 1 : 0;
         
-        // Handle file upload
+        //  genres - array dari checkbox
+        $selected_genres = [];
+        if (isset($_POST['genres']) && is_array($_POST['genres'])) {
+            $selected_genres = $_POST['genres'];
+        }
+        $genres_text = implode(', ', $selected_genres);
+        
+        //  file upload
         $cover_image = null;
         if (isset($_FILES['cover_image']) && $_FILES['cover_image']['error'] == 0) {
             $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
@@ -36,6 +43,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $file_extension = pathinfo($_FILES['cover_image']['name'], PATHINFO_EXTENSION);
                     $cover_image = uniqid('book_') . '.' . $file_extension;
                     $upload_path = '../assets/images/books/' . $cover_image;
+                    
+                    // Create directory if not exists
+                    if (!is_dir('../assets/images/books/')) {
+                        mkdir('../assets/images/books/', 0755, true);
+                    }
                     
                     if (!move_uploaded_file($_FILES['cover_image']['tmp_name'], $upload_path)) {
                         $message = '<div class="alert alert-error">Gagal mengupload cover buku</div>';
@@ -52,11 +64,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Add new book
         if (empty($message)) {
             if ($action == 'add') {
-                $query = "INSERT INTO books (title, author, cover_image, synopsis, publication_year, page_count, genres) 
-                         VALUES (?, ?, ?, ?, ?, ?, ?)";
+                $query = "INSERT INTO books (title, author, cover_image, synopsis, publication_year, page_count, genres, is_featured) 
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 $stmt = $db->prepare($query);
                 
-                if ($stmt->execute([$title, $author, $cover_image, $synopsis, $publication_year, $page_count, $genres])) {
+                if ($stmt->execute([$title, $author, $cover_image, $synopsis, $publication_year, $page_count, $genres_text, $is_featured])) {
                     $message = '<div class="alert alert-success">Buku berhasil ditambahkan!</div>';
                     $action = 'list';
                 } else {
@@ -75,13 +87,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         unlink('../assets/images/books/' . $old_cover_data['cover_image']);
                     }
                     
-                    $query = "UPDATE books SET title=?, author=?, cover_image=?, synopsis=?, publication_year=?, page_count=?, genres=? WHERE id=?";
+                    $query = "UPDATE books SET title=?, author=?, cover_image=?, synopsis=?, publication_year=?, page_count=?, genres=?, is_featured=? WHERE id=?";
                     $stmt = $db->prepare($query);
-                    $result = $stmt->execute([$title, $author, $cover_image, $synopsis, $publication_year, $page_count, $genres, $book_id]);
+                    $result = $stmt->execute([$title, $author, $cover_image, $synopsis, $publication_year, $page_count, $genres_text, $is_featured, $book_id]);
                 } else {
-                    $query = "UPDATE books SET title=?, author=?, synopsis=?, publication_year=?, page_count=?, genres=? WHERE id=?";
+                    $query = "UPDATE books SET title=?, author=?, synopsis=?, publication_year=?, page_count=?, genres=?, is_featured=? WHERE id=?";
                     $stmt = $db->prepare($query);
-                    $result = $stmt->execute([$title, $author, $synopsis, $publication_year, $page_count, $genres, $book_id]);
+                    $result = $stmt->execute([$title, $author, $synopsis, $publication_year, $page_count, $genres_text, $is_featured, $book_id]);
                 }
                 
                 if ($result) {
@@ -95,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Handle delete action
+//  delete 
 if (isset($_GET['delete'])) {
     $book_id = $_GET['delete'];
     
@@ -107,8 +119,8 @@ if (isset($_GET['delete'])) {
     $query = "DELETE FROM books WHERE id = ?";
     $stmt = $db->prepare($query);
     
+    // Delete cover file if exists
     if ($stmt->execute([$book_id])) {
-        // Delete cover file if exists
         if ($cover_data['cover_image'] && file_exists('../assets/images/books/' . $cover_data['cover_image'])) {
             unlink('../assets/images/books/' . $cover_data['cover_image']);
         }
@@ -133,6 +145,9 @@ if ($action == 'list') {
     ")->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// Get all active genres for form
+$genres = $db->query("SELECT * FROM genres WHERE is_active = TRUE ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
+
 // Get book data for edit
 $edit_book = null;
 if ($action == 'edit' && isset($_GET['id'])) {
@@ -155,7 +170,8 @@ if ($action == 'edit' && isset($_GET['id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kelola Buku - Admin Resensiku</title>
     <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="css/admin-main.css">
+    <link rel="stylesheet" href="css/admin-main.css"> 
+    <link rel="stylesheet" href="css/admin-books.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -231,7 +247,7 @@ if ($action == 'edit' && isset($_GET['id'])) {
                                     <h3><?php echo htmlspecialchars($book['title']); ?></h3>
                                     <p class="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
                                     
-                                    <!-- TAMPILKAN RATING DI HALAMAN BUKU -->
+                                    <!-- TAMPILKAN RATING -->
                                     <div class="book-stats" style="margin-bottom: var(--space-sm);">
                                         <div class="rating">
                                             <i class="fas fa-star"></i>
@@ -241,6 +257,11 @@ if ($action == 'edit' && isset($_GET['id'])) {
                                             <i class="fas fa-comment"></i>
                                             <span><?php echo $book['review_count']; ?> review</span>
                                         </div>
+                                        <?php if ($book['is_featured']): ?>
+                                            <div class="featured-badge">
+                                                <i class="fas fa-star"></i> Featured
+                                            </div>
+                                        <?php endif; ?>
                                     </div>
 
                                     <?php if ($book['publication_year']): ?>
@@ -250,8 +271,8 @@ if ($action == 'edit' && isset($_GET['id'])) {
                                     <?php if ($book['genres']): ?>
                                         <div class="book-genres">
                                             <?php 
-                                            $genres = explode(',', $book['genres']);
-                                            foreach (array_slice($genres, 0, 3) as $genre): 
+                                            $book_genres = explode(',', $book['genres']);
+                                            foreach (array_slice($book_genres, 0, 3) as $genre): 
                                                 if (!empty(trim($genre))):
                                             ?>
                                                 <span class="genre-tag"><?php echo trim($genre); ?></span>
@@ -327,11 +348,36 @@ if ($action == 'edit' && isset($_GET['id'])) {
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="genres">Genre</label>
-                                    <input type="text" id="genres" name="genres"
-                                           value="<?php echo $edit_book['genres'] ?? ''; ?>"
-                                           placeholder="Contoh: Romance, Fantasy, Mystery (pisahkan dengan koma)">
-                                    <small class="form-help">Pisahkan multiple genre dengan koma</small>
+                                    <label>Genre</label>
+                                    <div class="genres-checkbox-grid">
+                                        <?php foreach ($genres as $genre): ?>
+                                            <label class="checkbox-label genre-checkbox">
+                                                <input type="checkbox" name="genres[]" value="<?php echo htmlspecialchars($genre['name']); ?>"
+                                                    <?php 
+                                                    if (isset($edit_book['genres'])) {
+                                                        $book_genres = explode(',', $edit_book['genres']);
+                                                        if (in_array(trim($genre['name']), array_map('trim', $book_genres))) {
+                                                            echo 'checked';
+                                                        }
+                                                    }
+                                                    ?>>
+                                                <span class="checkmark"></span>
+                                                <i class="fas fa-<?php echo $genre['icon']; ?>" style="color: <?php echo $genre['color']; ?>;"></i>
+                                                <?php echo htmlspecialchars($genre['name']); ?>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+                                    <small class="form-help">Pilih satu atau lebih genre</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" name="is_featured" 
+                                               <?php echo ($edit_book['is_featured'] ?? 0) ? 'checked' : ''; ?>>
+                                        <span class="checkmark"></span>
+                                        Jadikan buku featured
+                                    </label>
+                                    <small class="form-help">Buku featured akan ditampilkan di halaman utama</small>
                                 </div>
                             </div>
 
@@ -389,6 +435,54 @@ if ($action == 'edit' && isset($_GET['id'])) {
     </div>
 
     <script src="../assets/js/main.js"></script>
-    <script src="../assets/js/admin-books.js"></script>
+    <script>
+        // Character counter for synopsis
+        const synopsisTextarea = document.getElementById('synopsis');
+        const charCounter = document.querySelector('.char-counter');
+
+        if (synopsisTextarea && charCounter) {
+            synopsisTextarea.addEventListener('input', function() {
+                const length = this.value.length;
+                charCounter.textContent = length + ' karakter';
+                
+                if (length > 1000) {
+                    charCounter.classList.add('warning');
+                } else {
+                    charCounter.classList.remove('warning');
+                }
+            });
+
+            // Initialize counter
+            synopsisTextarea.dispatchEvent(new Event('input'));
+        }
+
+        // File upload preview
+        const coverInput = document.getElementById('cover_image');
+        if (coverInput) {
+            coverInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Create preview if doesn't exist
+                        let preview = document.querySelector('.current-cover');
+                        if (!preview) {
+                            preview = document.createElement('div');
+                            preview.className = 'current-cover';
+                            preview.innerHTML = '<p>Preview:</p>';
+                            coverInput.parentNode.appendChild(preview);
+                        }
+                        
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'current-cover-image';
+                        preview.innerHTML = '<p>Preview:</p>';
+                        preview.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+    </script>
 </body>
 </html>

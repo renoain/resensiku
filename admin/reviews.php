@@ -2,7 +2,7 @@
 require_once '../config/constants.php';
 require_once '../config/database.php';
 
-// Check if user is logged in and is admin
+
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'admin') {
     header("Location: ../login.php");
     exit();
@@ -50,7 +50,8 @@ $reviews = $db->query("
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pantau Review - Admin Resensiku</title>
     <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="css/admin-main.css">
+    <link rel="stylesheet" href="css/admin-main.css"> 
+    <link rel="stylesheet" href="css/admin-reviews.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 

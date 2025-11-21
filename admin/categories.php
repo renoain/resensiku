@@ -2,7 +2,6 @@
 require_once '../config/constants.php';
 require_once '../config/database.php';
 
-// Check if user is logged in and is admin
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'admin') {
     header("Location: ../login.php");
     exit();
@@ -28,7 +27,7 @@ $db->exec("
     )
 ");
 
-// Insert default genres if table is empty
+// Insert default genres 
 $checkGenres = $db->query("SELECT COUNT(*) FROM genres")->fetchColumn();
 if ($checkGenres == 0) {
     $defaultGenres = [
@@ -50,7 +49,6 @@ if ($checkGenres == 0) {
     }
 }
 
-// Handle form actions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($action == 'add' || $action == 'edit') {
         $name = trim($_POST['name']);
@@ -59,11 +57,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $icon = $_POST['icon'];
         $is_active = isset($_POST['is_active']) ? 1 : 0;
         
+        // Add new genre
         if (empty($name)) {
             $message = '<div class="alert alert-error">Nama genre harus diisi</div>';
         } else {
             if ($action == 'add') {
-                // Add new genre
                 $query = "INSERT INTO genres (name, description, color, icon, is_active) VALUES (?, ?, ?, ?, ?)";
                 $stmt = $db->prepare($query);
                 
@@ -101,11 +99,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Handle delete action
+//  delete 
 if (isset($_GET['delete'])) {
     $genre_id = $_GET['delete'];
     
-    // Check if genre is used in books
+    // Check genre if used in books
     $checkUsage = $db->prepare("SELECT COUNT(*) FROM books WHERE genres LIKE ?");
     $checkUsage->execute(['%' . $genre_id . '%']);
     $usageCount = $checkUsage->fetchColumn();
@@ -124,7 +122,7 @@ if (isset($_GET['delete'])) {
     }
 }
 
-// Handle toggle active status
+// toggle active status
 if (isset($_GET['toggle'])) {
     $genre_id = $_GET['toggle'];
     
@@ -178,12 +176,13 @@ $available_icons = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kelola Genre - Admin Resensiku</title>
     <link rel="stylesheet" href="../assets/css/main.css">
-    <link rel="stylesheet" href="css/admin-main.css">
+    <link rel="stylesheet" href="css/admin-main.css"> 
+    <link rel="stylesheet" href="css/admin-genre.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <!-- Admin Header -->
     <div class="admin-container">
-        <!-- Admin Header -->
         <header class="admin-header">
             <div class="admin-header-content">
                 <div class="admin-brand">
@@ -207,11 +206,11 @@ $available_icons = [
         <div class="admin-main">
             <?php echo $message; ?>
 
+            <!-- Genres Listing -->
             <?php if ($action == 'list'): ?>
-                <!-- Genres Listing -->
                 <section class="genres-listing">
                     <div class="section-header">
-                        <h2>🏷️ Daftar Genre (<?php echo count($genres); ?>)</h2>
+                        <h2>  Genre (<?php echo count($genres); ?>)</h2>
                         <div class="header-actions">
                             <a href="categories.php?action=add" class="btn btn-primary">
                                 <i class="fas fa-plus"></i> Tambah Genre Baru
@@ -312,15 +311,15 @@ $available_icons = [
                     <?php endif; ?>
                 </section>
 
+                <!-- Add/Edit Genre -->
             <?php elseif ($action == 'add' || $action == 'edit'): ?>
-                <!-- Add/Edit Genre Form -->
                 <section class="genre-form-section">
                     <div class="section-header">
                         <h2>
-                            <?php echo $action == 'add' ? '➕ Tambah Genre Baru' : '✏️ Edit Genre: ' . htmlspecialchars($edit_genre['name']); ?>
+                            <?php echo $action == 'add' ? 'Tambah Genre Baru' : '✏️ Edit Genre: ' . htmlspecialchars($edit_genre['name']); ?>
                         </h2>
                         <a href="categories.php" class="btn btn-secondary">
-                            <i class="fas fa-arrow-left"></i> Kembali ke Daftar
+                            <i class="fas fa-arrow-left"></i> Kembali
                         </a>
                     </div>
 

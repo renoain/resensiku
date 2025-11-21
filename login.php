@@ -2,48 +2,26 @@
 require_once 'config/constants.php';
 require_once 'config/database.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $database = new Database();
-    $db = $database->getConnection();
-    
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    
-    $errors = [];
-    
-    // Validasi
-    if (empty($email)) $errors[] = "Email is required";
-    if (empty($password)) $errors[] = "Password is required";
-    
-    if (empty($errors)) {
-        $query = "SELECT id, first_name, last_name, email, password, role FROM users WHERE email = ?";
-        $stmt = $db->prepare($query);
-        $stmt->execute([$email]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($user && password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['user_name'] = $user['first_name'] . ' ' . $user['last_name'];
-            $_SESSION['user_email'] = $user['email'];
-            $_SESSION['user_role'] = $user['role'];
-            
-            // Redirect based on role
-            if ($user['role'] == 'admin') {
-                header("Location: admin/index.php");
-            } else {
-                header("Location: index.php");
-            }
-            exit();
-        } else {
-            $errors[] = "Invalid email or password";
-        }
+// Check if already logged in
+if (isset($_SESSION['user_id'])) {
+    if ($_SESSION['user_role'] == 'admin') {
+        header("Location: admin/index.php");
+    } else {
+        header("Location: index.php");
     }
+    exit();
 }
 
 // Check for success message from registration
-$success = isset($_SESSION['success']) ? $_SESSION['success'] : '';
+$success = $_SESSION['success'] ?? '';
 if (isset($_SESSION['success'])) {
     unset($_SESSION['success']);
+}
+
+// Check for error message
+$error = $_SESSION['error'] ?? '';
+if (isset($_SESSION['error'])) {
+    unset($_SESSION['error']);
 }
 ?>
 
@@ -68,36 +46,52 @@ if (isset($_SESSION['success'])) {
             
             <?php if (!empty($success)): ?>
                 <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
                     <p><?php echo htmlspecialchars($success); ?></p>
                 </div>
             <?php endif; ?>
             
-            <?php if (!empty($errors)): ?>
+            <?php if (!empty($error)): ?>
                 <div class="alert alert-error">
-                    <?php foreach ($errors as $error): ?>
-                        <p><?php echo htmlspecialchars($error); ?></p>
-                    <?php endforeach; ?>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p><?php echo htmlspecialchars($error); ?></p>
                 </div>
             <?php endif; ?>
             
-            <form method="POST" class="auth-form">
+            <div id="ajaxAlert"></div>
+            
+            <form class="auth-form" id="loginForm">
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required
-                           value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" name="email" required placeholder="Masukkan email Anda">
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <div class="password-wrapper">
+                    <div class="input-with-icon password-wrapper">
+                        <i class="fas fa-lock"></i>
                         <input type="password" id="password" name="password" placeholder="Masukkan password" required>
-                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password', 'passwordIcon')">
-                            <i class="fas fa-eye-slash" id="passwordIcon"></i>
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password')">
+                            <i class="fas fa-eye-slash"></i>
                         </button>
                     </div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary btn-full">Login</button>
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="remember" id="remember">
+                        <span class="checkmark"></span>
+                        Ingat Saya
+                    </label>
+                    <a href="forgot-password.php" class="forgot-link">Lupa Password?</a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
             </form>
             
             <div class="auth-footer">
@@ -107,9 +101,9 @@ if (isset($_SESSION['success'])) {
     </div>
 
     <script>
-        function togglePasswordVisibility(inputId, iconId) {
-            const passwordInput = document.getElementById(inputId);
-            const eyeIcon = document.getElementById(iconId);
+        function togglePasswordVisibility(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const eyeIcon = passwordInput.parentNode.querySelector('.toggle-password i');
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -122,22 +116,71 @@ if (isset($_SESSION['success'])) {
             }
         }
 
-        // Enhanced version with keyboard support
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add keyboard support for toggle buttons
-            const toggleButtons = document.querySelectorAll('.toggle-password');
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            toggleButtons.forEach(button => {
-                button.addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        const inputId = this.getAttribute('onclick').match(/'([^']+)'/)[1];
-                        const iconId = this.getAttribute('onclick').match(/'([^']+)'/)[2];
-                        togglePasswordVisibility(inputId, iconId);
-                    }
+            const formData = new FormData();
+            formData.append('email', document.getElementById('email').value);
+            formData.append('password', document.getElementById('password').value);
+            formData.append('action', 'login');
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Login...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('api/auth.php', {
+                    method: 'POST',
+                    body: formData
                 });
-            });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Login berhasil! Mengalihkan...', 'success');
+                    
+                    // Redirect based on role
+                    setTimeout(() => {
+                        if (result.user.role === 'admin') {
+                            window.location.href = 'admin/index.php';
+                        } else {
+                            window.location.href = 'index.php';
+                        }
+                    }, 1000);
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                showAlert('Terjadi kesalahan saat login', 'error');
+                console.error('Login error:', error);
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
         });
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('ajaxAlert');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            // Auto hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    alertContainer.innerHTML = '';
+                }, 5000);
+            }
+        }
+
+        // Focus on email field when page loads
+        document.getElementById('email').focus();
     </script>
 </body>
 </html>

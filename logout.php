@@ -1,10 +1,16 @@
 <?php
 require_once 'config/constants.php';
+require_once 'config/database.php';
 
-// Destroy all session data
+// Handle logout via API
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    session_destroy();
+    echo json_encode(['success' => true, 'message' => 'Logout successful']);
+    exit();
+}
+
+// Traditional logout
 session_destroy();
-
-// Redirect to login page
 header("Location: login.php");
 exit();
 ?>

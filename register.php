@@ -2,50 +2,16 @@
 require_once 'config/constants.php';
 require_once 'config/database.php';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $database = new Database();
-    $db = $database->getConnection();
-    
-    $first_name = trim($_POST['first_name']);
-    $last_name = trim($_POST['last_name']);
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    $confirm_password = $_POST['confirm_password'];
-    
-    $errors = [];
-    
-    // Validasi
-    if (empty($first_name)) $errors[] = "First name is required";
-    if (empty($last_name)) $errors[] = "Last name is required";
-    if (empty($email)) $errors[] = "Email is required";
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) $errors[] = "Invalid email format";
-    if (empty($password)) $errors[] = "Password is required";
-    if (strlen($password) < 6) $errors[] = "Password must be at least 6 characters";
-    if ($password !== $confirm_password) $errors[] = "Passwords do not match";
-    
-    // Check if email exists
-    if (empty($errors)) {
-        $check_email = $db->prepare("SELECT id FROM users WHERE email = ?");
-        $check_email->execute([$email]);
-        if ($check_email->fetch()) {
-            $errors[] = "Email already registered";
-        }
-    }
-    
-    // Register user
-    if (empty($errors)) {
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        $query = "INSERT INTO users (first_name, last_name, email, password) VALUES (?, ?, ?, ?)";
-        $stmt = $db->prepare($query);
-        
-        if ($stmt->execute([$first_name, $last_name, $email, $hashed_password])) {
-            $_SESSION['success'] = "Registration successful! Please login.";
-            header("Location: login.php");
-            exit();
-        } else {
-            $errors[] = "Registration failed. Please try again.";
-        }
-    }
+// Check if already logged in
+if (isset($_SESSION['user_id'])) {
+    header("Location: index.php");
+    exit();
+}
+
+// Check for error message
+$error = $_SESSION['error'] ?? '';
+if (isset($_SESSION['error'])) {
+    unset($_SESSION['error']);
 }
 ?>
 
@@ -54,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - Resensiku</title>
+    <title>Daftar - Resensiku</title>
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/auth.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -68,55 +34,75 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <p>Bergabunglah dengan komunitas pembaca Indonesia</p>
             </div>
             
-            <?php if (!empty($errors)): ?>
+            <?php if (!empty($error)): ?>
                 <div class="alert alert-error">
-                    <?php foreach ($errors as $error): ?>
-                        <p><?php echo htmlspecialchars($error); ?></p>
-                    <?php endforeach; ?>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p><?php echo htmlspecialchars($error); ?></p>
                 </div>
             <?php endif; ?>
             
-            <form method="POST" class="auth-form">
+            <div id="ajaxAlert"></div>
+            
+            <form class="auth-form" id="registerForm">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="first_name">Nama Depan</label>
-                        <input type="text" id="first_name" name="first_name" required 
-                               value="<?php echo isset($_POST['first_name']) ? htmlspecialchars($_POST['first_name']) : ''; ?>">
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="first_name" name="first_name" required placeholder="Nama depan">
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="last_name">Nama Belakang</label>
-                        <input type="text" id="last_name" name="last_name" required
-                               value="<?php echo isset($_POST['last_name']) ? htmlspecialchars($_POST['last_name']) : ''; ?>">
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="last_name" name="last_name" required placeholder="Nama belakang">
+                        </div>
                     </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required
-                           value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" name="email" required placeholder="email@contoh.com">
+                    </div>
                 </div>
                 
                 <div class="form-group">
                     <label for="password">Password</label>
-                    <div class="password-wrapper">
+                    <div class="input-with-icon password-wrapper">
+                        <i class="fas fa-lock"></i>
                         <input type="password" id="password" name="password" placeholder="Masukkan password" required>
-                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password', 'passwordIcon')">
-                            <i class="fas fa-eye-slash" id="passwordIcon"></i>
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('password')">
+                            <i class="fas fa-eye-slash"></i>
                         </button>
                     </div>
+                    <small class="form-help">Minimal 6 karakter</small>
                 </div>
                 
                 <div class="form-group">
                     <label for="confirm_password">Konfirmasi Password</label>
-                    <div class="password-wrapper">
+                    <div class="input-with-icon password-wrapper">
+                        <i class="fas fa-lock"></i>
                         <input type="password" id="confirm_password" name="confirm_password" placeholder="Konfirmasi password" required>
-                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('confirm_password', 'confirmPasswordIcon')">
-                            <i class="fas fa-eye-slash" id="confirmPasswordIcon"></i>
+                        <button type="button" class="toggle-password" onclick="togglePasswordVisibility('confirm_password')">
+                            <i class="fas fa-eye-slash"></i>
                         </button>
                     </div>
                 </div>
                 
-                <button type="submit" class="btn btn-primary btn-full">Daftar</button>
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="agree_terms" id="agree_terms" required>
+                        <span class="checkmark"></span>
+                        Saya menyetujui <a href="#" class="terms-link">Syarat & Ketentuan</a>
+                    </label>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-full">
+                    <i class="fas fa-user-plus"></i> Daftar
+                </button>
             </form>
             
             <div class="auth-footer">
@@ -126,9 +112,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 
     <script>
-        function togglePasswordVisibility(inputId, iconId) {
-            const passwordInput = document.getElementById(inputId);
-            const eyeIcon = document.getElementById(iconId);
+        function togglePasswordVisibility(fieldId) {
+            const passwordInput = document.getElementById(fieldId);
+            const eyeIcon = passwordInput.parentNode.querySelector('.toggle-password i');
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
@@ -141,50 +127,88 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
-        // Enhanced version with better UX
-        function togglePasswordVisibilityEnhanced(inputId, iconId) {
-            const passwordInput = document.getElementById(inputId);
-            const eyeIcon = document.getElementById(iconId);
-            const passwordWrapper = passwordInput.parentElement;
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
             
-            // Toggle input type
-            const isPassword = passwordInput.type === 'password';
-            passwordInput.type = isPassword ? 'text' : 'password';
-    
-            // Toggle icon
-            if (isPassword) {
-                eyeIcon.classList.remove('fa-eye-slash');
-                eyeIcon.classList.add('fa-eye');
-                passwordWrapper.classList.add('show-password');
-            } else {
-                eyeIcon.classList.remove('fa-eye');
-                eyeIcon.classList.add('fa-eye-slash');
-                passwordWrapper.classList.remove('show-password');
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            // Basic validation
+            if (password !== confirmPassword) {
+                showAlert('Password tidak cocok', 'error');
+                return;
             }
             
-            // Maintain focus on input
-            passwordInput.focus();
+            if (password.length < 6) {
+                showAlert('Password minimal 6 karakter', 'error');
+                return;
+            }
+            
+            if (!document.getElementById('agree_terms').checked) {
+                showAlert('Anda harus menyetujui Syarat & Ketentuan', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('first_name', document.getElementById('first_name').value);
+            formData.append('last_name', document.getElementById('last_name').value);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('password', password);
+            formData.append('confirm_password', confirmPassword);
+            formData.append('action', 'register');
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Show loading
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mendaftar...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('api/auth.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert('Pendaftaran berhasil! Mengalihkan ke halaman login...', 'success');
+                    
+                    setTimeout(() => {
+                        window.location.href = 'login.php?success=' + encodeURIComponent(result.message);
+                    }, 2000);
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                showAlert('Terjadi kesalahan saat pendaftaran', 'error');
+                console.error('Registration error:', error);
+            } finally {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('ajaxAlert');
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                    <p>${message}</p>
+                </div>
+            `;
+            
+            // Auto hide success messages after 5 seconds
+            if (type === 'success') {
+                setTimeout(() => {
+                    alertContainer.innerHTML = '';
+                }, 5000);
+            }
         }
 
-        // Alternative without Font Awesome (using CSS only)
-        function togglePasswordVisibilityCSS(inputId) {
-            const passwordInput = document.getElementById(inputId);
-            const passwordWrapper = passwordInput.parentElement;
-            
-            // Toggle input type
-            const isPassword = passwordInput.type === 'password';
-            passwordInput.type = isPassword ? 'text' : 'password';
-            
-            // Toggle CSS class for styling
-            if (isPassword) {
-                passwordWrapper.classList.add('show-password');
-            } else {
-                passwordWrapper.classList.remove('show-password');
-            }
-            
-            // Maintain focus
-            passwordInput.focus();
-        }
+        // Focus on first name field when page loads
+        document.getElementById('first_name').focus();
     </script>
 </body>
 </html>

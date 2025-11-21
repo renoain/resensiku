@@ -11,36 +11,78 @@ if (!isset($_SESSION['user_id'])) {
 $database = new Database();
 $db = $database->getConnection();
 
-// Get featured books
+// Get user stats
+$user_id = $_SESSION['user_id'];
+
+// Fix: Use proper PDO execution for prepared statements
+$stmt_bookshelf = $db->prepare("SELECT COUNT(*) FROM bookshelf WHERE user_id = ?");
+$stmt_bookshelf->execute([$user_id]);
+$my_bookshelf_count = $stmt_bookshelf->fetchColumn();
+
+$stmt_reviews = $db->prepare("SELECT COUNT(*) FROM reviews WHERE user_id = ?");
+$stmt_reviews->execute([$user_id]);
+$my_reviews_count = $stmt_reviews->fetchColumn();
+
+$user_stats = [
+    'total_books' => $db->query("SELECT COUNT(*) FROM books")->fetchColumn(),
+    'my_bookshelf' => $my_bookshelf_count,
+    'my_reviews' => $my_reviews_count
+];
+
+// Get featured books (most reviewed)
 $featured_books = $db->query("
-    SELECT b.*, AVG(r.rating) as avg_rating 
+    SELECT b.*, 
+           AVG(r.rating) as avg_rating,
+           COUNT(r.id) as review_count
     FROM books b 
     LEFT JOIN reviews r ON b.id = r.book_id 
     GROUP BY b.id 
-    ORDER BY avg_rating DESC 
-    LIMIT 5
+    ORDER BY review_count DESC, avg_rating DESC 
+    LIMIT 6
 ")->fetchAll(PDO::FETCH_ASSOC);
 
-// Get user's bookshelf stats
-$user_id = $_SESSION['user_id'];
-$bookshelf_stats = $db->prepare("
+// Get recent books
+$recent_books = $db->query("
+    SELECT b.*, 
+           AVG(r.rating) as avg_rating,
+           COUNT(r.id) as review_count
+    FROM books b 
+    LEFT JOIN reviews r ON b.id = r.book_id 
+    GROUP BY b.id 
+    ORDER BY b.created_at DESC 
+    LIMIT 8
+")->fetchAll(PDO::FETCH_ASSOC);
+
+// Get popular genres
+$popular_genres = $db->query("
+    SELECT genres, COUNT(*) as book_count 
+    FROM books 
+    WHERE genres IS NOT NULL AND genres != ''
+    GROUP BY genres 
+    ORDER BY book_count DESC 
+    LIMIT 8
+")->fetchAll(PDO::FETCH_ASSOC);
+
+// Get user's reading progress
+$stmt_progress = $db->prepare("
     SELECT status, COUNT(*) as count 
     FROM bookshelf 
     WHERE user_id = ? 
     GROUP BY status
 ");
-$bookshelf_stats->execute([$user_id]);
-$stats = $bookshelf_stats->fetchAll(PDO::FETCH_ASSOC);
+$stmt_progress->execute([$user_id]);
+$reading_progress = $stmt_progress->fetchAll(PDO::FETCH_ASSOC);
 
-// Get recent reviews
-$recent_reviews = $db->query("
-    SELECT r.*, u.first_name, u.last_name, b.title, b.cover_image 
-    FROM reviews r 
-    JOIN users u ON r.user_id = u.id 
-    JOIN books b ON r.book_id = b.id 
-    ORDER BY r.created_at DESC 
-    LIMIT 6
-")->fetchAll(PDO::FETCH_ASSOC);
+// Initialize progress counts
+$progress_counts = [
+    'want_to_read' => 0,
+    'reading' => 0,
+    'read' => 0
+];
+
+foreach ($reading_progress as $progress) {
+    $progress_counts[$progress['status']] = $progress['count'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -50,263 +92,418 @@ $recent_reviews = $db->query("
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beranda - Resensiku</title>
     <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="stylesheet" href="assets/css/home.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <!-- Header akan ditambahkan nanti -->
-    <div class="container">
-        <!-- Hero Section -->
-        <section class="hero-section">
-            <div class="hero-content">
-                <h1>Selamat Datang di Resensiku</h1>
-                <p>Bagikan pengalaman membaca Anda dengan komunitas pembaca Indonesia</p>
-                <div class="hero-stats">
-                    <?php foreach ($stats as $stat): ?>
-                        <div class="stat-item">
-                            <span class="stat-count"><?php echo $stat['count']; ?></span>
-                            <span class="stat-label">
-                                <?php 
-                                switch($stat['status']) {
-                                    case 'want_to_read': echo 'Ingin Dibaca'; break;
-                                    case 'reading': echo 'Sedang Dibaca'; break;
-                                    case 'read': echo 'Selesai Dibaca'; break;
-                                }
-                                ?>
-                            </span>
+<body class="home-page">
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <div class="header-brand">
+                <img src="assets/images/logo/Resensiku.png" alt="Resensiku" class="header-logo">
+                <span class="brand-name">Resensiku</span>
+            </div>
+            
+            <nav class="header-nav">
+                <a href="index.php" class="nav-link active">
+                    <i class="fas fa-home"></i> Beranda
+                </a>
+                <a href="books.php" class="nav-link">
+                    <i class="fas fa-book"></i> Jelajah Buku
+                </a>
+                <a href="bookshelf.php" class="nav-link">
+                    <i class="fas fa-bookmark"></i> Bookshelf Saya
+                </a>
+            </nav>
+            
+            <div class="header-actions">
+                <div class="user-menu">
+                    <button class="user-btn">
+                        <div class="user-avatar">
+                            <?php echo strtoupper(substr($_SESSION['user_name'], 0, 1)); ?>
                         </div>
-                    <?php endforeach; ?>
+                        <span class="user-name"><?php echo htmlspecialchars($_SESSION['user_name']); ?></span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="user-dropdown">
+                        <a href="profile.php" class="dropdown-item">
+                            <i class="fas fa-user"></i> Profil Saya
+                        </a>
+                        <a href="bookshelf.php" class="dropdown-item">
+                            <i class="fas fa-bookmark"></i> Bookshelf
+                        </a>
+                        <a href="reviews.php" class="dropdown-item">
+                            <i class="fas fa-star"></i> Review Saya
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="logout.php" class="dropdown-item logout">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+            <div class="welcome-content">
+                <h1>Selamat Datang, <?php echo htmlspecialchars(explode(' ', $_SESSION['user_name'])[0]); ?>! 👋</h1>
+                <p>Jelajahi dunia literasi dan bagikan pengalaman membaca Anda</p>
+            </div>
+            <div class="welcome-stats">
+                <div class="stat-badge">
+                    <i class="fas fa-book-open"></i>
+                    <span><?php echo $user_stats['total_books']; ?>+ Buku Tersedia</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Stats -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number"><?php echo $user_stats['total_books']; ?></span>
+                        <span class="stat-label">Total Buku</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon success">
+                        <i class="fas fa-bookmark"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number"><?php echo $user_stats['my_bookshelf']; ?></span>
+                        <span class="stat-label">Di Bookshelf</span>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-number"><?php echo $user_stats['my_reviews']; ?></span>
+                        <span class="stat-label">Review Saya</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reading Progress -->
+        <section class="progress-section">
+            <div class="section-header">
+                <h2>📊 Progress Membaca</h2>
+                <a href="bookshelf.php" class="view-all">Lihat Semua</a>
+            </div>
+            <div class="progress-grid">
+                <div class="progress-item">
+                    <div class="progress-icon want-to-read">
+                        <i class="fas fa-bookmark"></i>
+                    </div>
+                    <div class="progress-info">
+                        <span class="progress-count"><?php echo $progress_counts['want_to_read']; ?></span>
+                        <span class="progress-label">Ingin Dibaca</span>
+                    </div>
+                </div>
+                
+                <div class="progress-item">
+                    <div class="progress-icon reading">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="progress-info">
+                        <span class="progress-count"><?php echo $progress_counts['reading']; ?></span>
+                        <span class="progress-label">Sedang Dibaca</span>
+                    </div>
+                </div>
+                
+                <div class="progress-item">
+                    <div class="progress-icon read">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="progress-info">
+                        <span class="progress-count"><?php echo $progress_counts['read']; ?></span>
+                        <span class="progress-label">Selesai Dibaca</span>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- Featured Books -->
-        <section class="section">
-            <h2>Buku Terpopuler</h2>
-            <div class="books-grid">
-                <?php foreach ($featured_books as $book): ?>
+        <section class="featured-section">
+            <div class="section-header">
+                <h2>🔥 Buku Populer</h2>
+                <a href="books.php" class="view-all">Lihat Semua</a>
+            </div>
+            
+            <?php if (empty($featured_books)): ?>
+                <div class="empty-state">
+                    <i class="fas fa-book-open fa-3x"></i>
+                    <h3>Belum ada buku</h3>
+                    <p>Buku populer akan muncul di sini</p>
+                    <a href="admin/books.php?action=add" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Tambah Buku Pertama
+                    </a>
+                </div>
+            <?php else: ?>
+                <div class="books-grid">
+                    <?php foreach ($featured_books as $book): ?>
                     <div class="book-card">
                         <div class="book-cover">
                             <img src="assets/images/books/<?php echo $book['cover_image'] ?? 'default-cover.png'; ?>" 
-                                 alt="<?php echo htmlspecialchars($book['title']); ?>">
+                                 alt="<?php echo htmlspecialchars($book['title']); ?>"
+                                 onerror="this.src='assets/images/books/default-cover.png'">
+                            <div class="book-overlay">
+                                <div class="book-actions">
+                                    <button class="btn-action btn-shelf" data-book-id="<?php echo $book['id']; ?>" title="Tambah ke Bookshelf">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <a href="book-detail.php?id=<?php echo $book['id']; ?>" class="btn-action btn-view" title="Lihat Detail">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                         <div class="book-info">
-                            <h3><?php echo htmlspecialchars($book['title']); ?></h3>
+                            <h3 class="book-title"><?php echo htmlspecialchars($book['title']); ?></h3>
                             <p class="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
-                            <?php if ($book['avg_rating']): ?>
-                                <div class="book-rating">
-                                    <span class="rating-stars">★★★★★</span>
-                                    <span class="rating-value"><?php echo number_format($book['avg_rating'], 1); ?></span>
+                            
+                            <div class="book-rating">
+                                <div class="stars">
+                                    <?php
+                                    $rating = $book['avg_rating'] ?? 0;
+                                    $fullStars = floor($rating);
+                                    $hasHalfStar = ($rating - $fullStars) >= 0.5;
+                                    
+                                    for ($i = 1; $i <= 5; $i++):
+                                        if ($i <= $fullStars): ?>
+                                            <i class="fas fa-star"></i>
+                                        <?php elseif ($i == $fullStars + 1 && $hasHalfStar): ?>
+                                            <i class="fas fa-star-half-alt"></i>
+                                        <?php else: ?>
+                                            <i class="far fa-star"></i>
+                                        <?php endif;
+                                    endfor; ?>
+                                </div>
+                                <span class="rating-value"><?php echo number_format($rating, 1); ?></span>
+                            </div>
+                            
+                            <div class="book-meta">
+                                <?php if ($book['publication_year']): ?>
+                                    <span class="meta-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <?php echo $book['publication_year']; ?>
+                                    </span>
+                                <?php endif; ?>
+                                
+                                <span class="meta-item">
+                                    <i class="fas fa-comment"></i>
+                                    <?php echo $book['review_count']; ?> review
+                                </span>
+                            </div>
+                            
+                            <?php if ($book['genres']): ?>
+                                <div class="book-genres">
+                                    <?php 
+                                    $genres = explode(',', $book['genres']);
+                                    foreach (array_slice($genres, 0, 2) as $genre): 
+                                        if (!empty(trim($genre))):
+                                    ?>
+                                        <span class="genre-tag"><?php echo trim($genre); ?></span>
+                                    <?php 
+                                        endif;
+                                    endforeach; 
+                                    ?>
                                 </div>
                             <?php endif; ?>
                         </div>
                     </div>
-                <?php endforeach; ?>
-            </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </section>
 
-        <!-- Recent Reviews -->
-        <section class="section">
-            <h2>Review Terbaru</h2>
-            <div class="reviews-grid">
-                <?php foreach ($recent_reviews as $review): ?>
-                    <div class="review-card">
-                        <div class="review-header">
-                            <div class="reviewer-info">
-                                <span class="reviewer-name">
-                                    <?php echo htmlspecialchars($review['first_name'] . ' ' . $review['last_name']); ?>
-                                </span>
-                                <span class="review-date">
-                                    <?php echo date('d M Y', strtotime($review['created_at'])); ?>
-                                </span>
-                            </div>
-                            <div class="review-rating">
-                                <?php echo str_repeat('★', $review['rating']); ?>
-                            </div>
-                        </div>
-                        <h4 class="review-book-title"><?php echo htmlspecialchars($review['title']); ?></h4>
-                        <p class="review-text"><?php echo htmlspecialchars(substr($review['review_text'], 0, 150)); ?>...</p>
+        <!-- Recent Books & Popular Genres -->
+        <div class="content-grid">
+            <!-- Recent Books -->
+            <section class="recent-section">
+                <div class="section-header">
+                    <h2>📚 Buku Terbaru</h2>
+                    <a href="books.php" class="view-all">Lihat Semua</a>
+                </div>
+                
+                <?php if (empty($recent_books)): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-book fa-2x"></i>
+                        <p>Belum ada buku terbaru</p>
                     </div>
-                <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="recent-books-list">
+                        <?php foreach ($recent_books as $book): ?>
+                        <div class="recent-book-item">
+                            <div class="recent-book-cover">
+                                <img src="assets/images/books/<?php echo $book['cover_image'] ?? 'default-cover.png'; ?>" 
+                                     alt="<?php echo htmlspecialchars($book['title']); ?>"
+                                     onerror="this.src='assets/images/books/default-cover.png'">
+                            </div>
+                            <div class="recent-book-info">
+                                <h4><?php echo htmlspecialchars($book['title']); ?></h4>
+                                <p class="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
+                                <div class="book-stats">
+                                    <div class="rating">
+                                        <i class="fas fa-star"></i>
+                                        <span><?php echo number_format($book['avg_rating'] ?? 0, 1); ?></span>
+                                    </div>
+                                    <div class="reviews">
+                                        <i class="fas fa-comment"></i>
+                                        <span><?php echo $book['review_count']; ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <a href="book-detail.php?id=<?php echo $book['id']; ?>" class="recent-book-link">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </section>
+
+            <!-- Popular Genres -->
+            <section class="genres-section">
+                <div class="section-header">
+                    <h2>🏷️ Genre Populer</h2>
+                </div>
+                
+                <?php if (empty($popular_genres)): ?>
+                    <div class="empty-state">
+                        <i class="fas fa-tags fa-2x"></i>
+                        <p>Belum ada genre</p>
+                    </div>
+                <?php else: ?>
+                    <div class="genres-list">
+                        <?php foreach ($popular_genres as $genre): ?>
+                        <a href="books.php?genre=<?php echo urlencode($genre['genres']); ?>" class="genre-item">
+                            <span class="genre-name"><?php echo htmlspecialchars($genre['genres']); ?></span>
+                            <span class="genre-count"><?php echo $genre['book_count']; ?> buku</span>
+                        </a>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+                
+                <div class="genres-actions">
+                    <a href="books.php" class="btn btn-outline btn-full">
+                        <i class="fas fa-search"></i> Jelajah Semua Genre
+                    </a>
+                </div>
+            </section>
+        </div>
+
+        <!-- Quick Actions -->
+        <section class="actions-section">
+            <h2>🚀 Mulai Membaca</h2>
+            <div class="actions-grid">
+                <a href="books.php" class="action-card explore">
+                    <div class="action-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>Jelajah Buku</h3>
+                    <p>Temukan buku baru untuk dibaca</p>
+                </a>
+                
+                <a href="bookshelf.php" class="action-card bookshelf">
+                    <div class="action-icon">
+                        <i class="fas fa-bookmark"></i>
+                    </div>
+                    <h3>Bookshelf Saya</h3>
+                    <p>Kelola koleksi bacaan Anda</p>
+                </a>
+                
+                <a href="books.php?sort=popular" class="action-card popular">
+                    <div class="action-icon">
+                        <i class="fas fa-fire"></i>
+                    </div>
+                    <h3>Buku Populer</h3>
+                    <p>Lihat yang sedang trending</p>
+                </a>
+                
+                <a href="profile.php" class="action-card profile">
+                    <div class="action-icon">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Profil Saya</h3>
+                    <p>Kelola akun dan preferensi</p>
+                </a>
             </div>
         </section>
-    </div>
+    </main>
 
-    <style>
-        /* HOMEPAGE SPECIFIC STYLES */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: var(--space-lg);
-        }
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <img src="assets/images/logo/Resensiku.png" alt="Resensiku" class="footer-logo">
+                    <p>Platform berbagi review buku untuk komunitas pembaca Indonesia</p>
+                </div>
+                <div class="footer-links">
+                    <a href="about.php">Tentang</a>
+                    <a href="contact.php">Kontak</a>
+                    <a href="privacy.php">Privasi</a>
+                    <a href="terms.php">Syarat & Ketentuan</a>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 Resensiku. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
-        .hero-section {
-            background: linear-gradient(135deg, var(--white) 0%, var(--bg-primary) 100%);
-            padding: var(--space-xl);
-            border-radius: var(--radius-lg);
-            margin-bottom: var(--space-xl);
-            text-align: center;
-        }
-
-        .hero-content h1 {
-            font-size: 3rem;
-            margin-bottom: var(--space-sm);
-        }
-
-        .hero-stats {
-            display: flex;
-            justify-content: center;
-            gap: var(--space-xl);
-            margin-top: var(--space-lg);
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-count {
-            display: block;
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--text-dark);
-            font-family: var(--font-serif);
-        }
-
-        .stat-label {
-            font-size: 0.9rem;
-            color: var(--text-medium);
-        }
-
-        .section {
-            margin-bottom: var(--space-xl);
-        }
-
-        .section h2 {
-            border-bottom: 2px solid var(--text-light);
-            padding-bottom: var(--space-sm);
-            margin-bottom: var(--space-lg);
-        }
-
-        .books-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--space-lg);
-        }
-
-        .book-card {
-            background: var(--white);
-            border-radius: var(--radius-md);
-            padding: var(--space-md);
-            box-shadow: 0 4px 15px rgba(109, 97, 88, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .book-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .book-cover {
-            width: 100%;
-            height: 250px;
-            margin-bottom: var(--space-sm);
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-        }
-
-        .book-cover img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .book-info h3 {
-            font-size: 1.1rem;
-            margin-bottom: var(--space-xs);
-        }
-
-        .book-author {
-            font-size: 0.9rem;
-            color: var(--text-medium);
-            margin-bottom: var(--space-xs);
-        }
-
-        .book-rating {
-            display: flex;
-            align-items: center;
-            gap: var(--space-xs);
-        }
-
-        .rating-stars {
-            color: #FFD700;
-        }
-
-        .rating-value {
-            font-size: 0.9rem;
-            color: var(--text-medium);
-        }
-
-        .reviews-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: var(--space-lg);
-        }
-
-        .review-card {
-            background: var(--white);
-            border-radius: var(--radius-md);
-            padding: var(--space-md);
-            box-shadow: 0 4px 15px rgba(109, 97, 88, 0.1);
-        }
-
-        .review-header {
-            display: flex;
-            justify-content: between;
-            align-items: start;
-            margin-bottom: var(--space-sm);
-        }
-
-        .reviewer-info {
-            flex: 1;
-        }
-
-        .reviewer-name {
-            display: block;
-            font-weight: 500;
-            color: var(--text-dark);
-        }
-
-        .review-date {
-            font-size: 0.8rem;
-            color: var(--text-medium);
-        }
-
-        .review-rating {
-            color: #FFD700;
-        }
-
-        .review-book-title {
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: var(--space-sm);
-        }
-
-        .review-text {
-            color: var(--text-medium);
-            line-height: 1.5;
-        }
-
-        @media (max-width: 768px) {
-            .hero-stats {
-                flex-direction: column;
-                gap: var(--space-md);
-            }
+    <!-- JavaScript -->
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/home.js"></script>
+    
+    <script>
+        // Bookshelf functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const shelfButtons = document.querySelectorAll('.btn-shelf');
             
-            .hero-content h1 {
-                font-size: 2rem;
-            }
+            shelfButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const bookId = this.getAttribute('data-book-id');
+                    addToBookshelf(bookId);
+                });
+            });
             
-            .books-grid {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            async function addToBookshelf(bookId) {
+                try {
+                    const response = await fetch('api/bookshelf.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `action=add&book_id=${bookId}&status=want_to_read`
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        alert('Buku berhasil ditambahkan ke bookshelf!');
+                    } else {
+                        alert('Gagal menambahkan buku: ' + result.message);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan saat menambahkan buku');
+                }
             }
-        }
-    </style>
+        });
+    </script>
 </body>
 </html>

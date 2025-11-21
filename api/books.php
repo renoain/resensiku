@@ -1,76 +1,186 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - Resensiku</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Infant:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="sign up CSS.css"> 
-</head>
-<body>
-    <header class="logo">
-        <h1>Resensiku</h1>
-    </header>
+<?php
+require_once '../config/constants.php';
+require_once '../config/database.php';
 
-    <div class="login-container"> 
-        <form id="signupForm" class="login-box"> 
-            <h2>Sign Up</h2>
-            <p class="welcome">Create your Account</p>
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-            <div class="name-group">
-                <div class="input-group name-input">
-                    <label for="firstName">First Name</label>
-                    <input type="text" id="firstName" name="firstName" required>
-                </div>
-                <div class="input-group name-input">
-                    <label for="lastName">Last Name</label>
-                    <input type="text" id="lastName" name="lastName" required>
-                </div>
-            </div>
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit(0);
+}
 
-            <div class="input-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email id" required>
-            </div>
+$database = new Database();
+$db = $database->getConnection();
 
-            <div class="input-group">
-                <label for="password">Password</label>
-                <div class="password-wrapper">
-                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                    <span class="toggle-password" onclick="togglePasswordVisibility()">
-                        <i class="fas fa-eye-slash" id="eyeIcon"></i>
-                    </span>
-                </div>
-            </div>
+$action = $_GET['action'] ?? $_POST['action'] ?? '';
 
-            <div class="options">
-                <label>
-                    <input type="checkbox" name="remember">
-                    Remember Me
-                </label>
-                <a href="#" class="forgot-password">Forgot Password?</a>
-            </div>
+switch ($action) {
+    case 'list':
+        getBooksList();
+        break;
+    case 'detail':
+        getBookDetail();
+        break;
+    case 'featured':
+        getFeaturedBooks();
+        break;
+    case 'by_genre':
+        getBooksByGenre();
+        break;
+    default:
+        echo json_encode(['success' => false, 'message' => 'Invalid action']);
+        break;
+}
 
-            <button type="submit" class="btn-login">Create Account</button> 
-            <p class="signup-link">
-                Already A Member? <a href="login.html">Log in</a>
-            </p>
-        </form>
-    </div>
-
-    <div id="rememberMeModal" class="modal">
-    <div class="modal-content">
-        <p>Apakah Anda ingin browser mengingat data Anda?</p>
-        <div class="modal-actions">
-            <button id="modalSaveBtn" class="modal-btn save-btn">Save</button>
-            <button id="modalCancelBtn" class="modal-btn cancel-btn">Cancel</button>
-        </div>
-    </div>
-</div>
-
-    <script src="sign up .js"></script> 
-
+function getBooksList() {
+    global $db;
     
-    </body>
-</html>
+    $page = max(1, intval($_GET['page'] ?? 1));
+    $limit = min(50, max(1, intval($_GET['limit'] ?? 12)));
+    $offset = ($page - 1) * $limit;
+    
+    try {
+        // Get total count
+        $count_stmt = $db->query("SELECT COUNT(*) FROM books");
+        $total_books = $count_stmt->fetchColumn();
+        
+        // Get books with ratings
+        $stmt = $db->prepare("
+            SELECT b.*, 
+                   AVG(r.rating) as avg_rating,
+                   COUNT(r.id) as review_count
+            FROM books b 
+            LEFT JOIN reviews r ON b.id = r.book_id 
+            GROUP BY b.id 
+            ORDER BY b.created_at DESC 
+            LIMIT ? OFFSET ?
+        ");
+        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+        $stmt->bindValue(2, $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'success' => true,
+            'data' => [
+                'books' => $books,
+                'pagination' => [
+                    'page' => $page,
+                    'limit' => $limit,
+                    'total' => $total_books,
+                    'pages' => ceil($total_books / $limit)
+                ]
+            ]
+        ]);
+    } catch (PDOException $e) {
+        error_log("Books list error: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+    }
+}
+
+function getBookDetail() {
+    global $db;
+    
+    $book_id = $_GET['id'] ?? $_POST['id'] ?? null;
+    
+    if (!$book_id) {
+        echo json_encode(['success' => false, 'message' => 'Book ID is required']);
+        return;
+    }
+    
+    try {
+        $stmt = $db->prepare("
+            SELECT b.*, 
+                   AVG(r.rating) as avg_rating,
+                   COUNT(r.id) as review_count
+            FROM books b 
+            LEFT JOIN reviews r ON b.id = r.book_id 
+            WHERE b.id = ?
+            GROUP BY b.id
+        ");
+        $stmt->execute([$book_id]);
+        $book = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($book) {
+            echo json_encode([
+                'success' => true,
+                'data' => $book
+            ]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Book not found']);
+        }
+    } catch (PDOException $e) {
+        error_log("Book detail error: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+    }
+}
+
+function getFeaturedBooks() {
+    global $db;
+    
+    $limit = min(10, max(1, intval($_GET['limit'] ?? 6)));
+    
+    try {
+        $stmt = $db->prepare("
+            SELECT b.*, 
+                   AVG(r.rating) as avg_rating,
+                   COUNT(r.id) as review_count
+            FROM books b 
+            LEFT JOIN reviews r ON b.id = r.book_id 
+            GROUP BY b.id 
+            ORDER BY avg_rating DESC, review_count DESC 
+            LIMIT ?
+        ");
+        $stmt->bindValue(1, $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'success' => true,
+            'data' => $books
+        ]);
+    } catch (PDOException $e) {
+        error_log("Featured books error: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+    }
+}
+
+function getBooksByGenre() {
+    global $db;
+    
+    $genre = $_GET['genre'] ?? $_POST['genre'] ?? '';
+    
+    if (empty($genre)) {
+        echo json_encode(['success' => false, 'message' => 'Genre is required']);
+        return;
+    }
+    
+    try {
+        $stmt = $db->prepare("
+            SELECT b.*, 
+                   AVG(r.rating) as avg_rating,
+                   COUNT(r.id) as review_count
+            FROM books b 
+            LEFT JOIN reviews r ON b.id = r.book_id 
+            WHERE FIND_IN_SET(?, b.genres) > 0
+            GROUP BY b.id 
+            ORDER BY b.title ASC
+        ");
+        $stmt->execute([$genre]);
+        
+        $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        echo json_encode([
+            'success' => true,
+            'data' => $books
+        ]);
+    } catch (PDOException $e) {
+        error_log("Books by genre error: " . $e->getMessage());
+        echo json_encode(['success' => false, 'message' => 'Database error']);
+    }
+}
+?>

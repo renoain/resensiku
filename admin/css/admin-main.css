@@ -514,6 +514,104 @@
   gap: 4px;
   margin-bottom: var(--space-sm);
 }
+/* Genre Checkbox Grid */
+.genres-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.genre-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border: 1px solid var(--text-light);
+  border-radius: var(--radius-sm);
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.genre-checkbox:hover {
+  background: var(--bg-primary);
+  border-color: var(--text-medium);
+}
+
+.genre-checkbox input:checked + .checkmark {
+  background: var(--accent-brown);
+  border-color: var(--accent-brown);
+}
+
+.genre-checkbox input:checked + .checkmark:after {
+  display: block;
+}
+
+.genre-checkbox i {
+  font-size: 1rem;
+  width: 16px;
+  text-align: center;
+}
+
+/* Featured Badge */
+.featured-badge {
+  background: var(--accent-brown);
+  color: var(--white);
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Checkbox Label Improvements */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.checkbox-label input {
+  display: none;
+}
+
+.checkmark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--text-light);
+  border-radius: 3px;
+  display: inline-block;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.checkbox-label input:checked + .checkmark {
+  background: var(--accent-brown);
+  border-color: var(--accent-brown);
+}
+
+.checkbox-label input:checked + .checkmark:after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Form Help Text */
+.form-help {
+  color: var(--text-medium);
+  font-size: 0.8rem;
+  margin-top: 4px;
+  display: block;
+}
 
 .genre-tag {
   background: var(--bg-primary);

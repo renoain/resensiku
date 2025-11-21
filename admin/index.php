@@ -2,7 +2,7 @@
 require_once '../config/constants.php';
 require_once '../config/database.php';
 
-// Check if user is logged in and is admin
+
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] != 'admin') {
     header("Location: ../login.php");
     exit();
@@ -15,7 +15,8 @@ $db = $database->getConnection();
 $stats = [
     'total_books' => $db->query("SELECT COUNT(*) FROM books")->fetchColumn(),
     'total_users' => $db->query("SELECT COUNT(*) FROM users WHERE role='user'")->fetchColumn(),
-    'total_reviews' => $db->query("SELECT COUNT(*) FROM reviews")->fetchColumn()
+    'total_reviews' => $db->query("SELECT COUNT(*) FROM reviews")->fetchColumn(),
+    'total_genres' => $db->query("SELECT COUNT(*) FROM genres WHERE is_active = TRUE")->fetchColumn()
 ];
 
 // Get recent activities
@@ -37,6 +38,16 @@ $popular_books = $db->query("
     ORDER BY review_count DESC, avg_rating DESC 
     LIMIT 5
 ")->fetchAll(PDO::FETCH_ASSOC);
+
+// Get recent books
+$recent_books = $db->query("
+    SELECT b.*, COUNT(r.id) as review_count
+    FROM books b 
+    LEFT JOIN reviews r ON b.id = r.book_id 
+    GROUP BY b.id 
+    ORDER BY b.created_at DESC 
+    LIMIT 5
+")->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -47,6 +58,7 @@ $popular_books = $db->query("
     <title>Admin Dashboard - Resensiku</title>
     <link rel="stylesheet" href="../assets/css/main.css">
     <link rel="stylesheet" href="css/admin-main.css">
+    <link rel="stylesheet" href="css/admin-index.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
@@ -62,6 +74,9 @@ $popular_books = $db->query("
                 <div class="admin-nav">
                     <a href="books.php" class="btn btn-primary">
                         <i class="fas fa-book"></i> Kelola Buku
+                    </a>
+                    <a href="categories.php" class="btn btn-primary">
+                        <i class="fas fa-tags"></i> Kelola Genre
                     </a>
                     <a href="reviews.php" class="btn btn-primary">
                         <i class="fas fa-comment"></i> Pantau Review
@@ -93,18 +108,18 @@ $popular_books = $db->query("
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <img src="../assets/images/logo/manga.png" alt="Books">
+                            <i class="fas fa-book"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-number"><?php echo $stats['total_books']; ?></span>
                             <span class="stat-label">Total Buku</span>
                         </div>
-                        <a href="books.php" class="stat-link">Lihat Semua →</a>
+                        <a href="books.php" class="stat-link">Lihat Semua </a>
                     </div>
                     
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <img src="../assets/images/logo/akun.png" alt="Users">
+                            <i class="fas fa-users"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-number"><?php echo $stats['total_users']; ?></span>
@@ -114,18 +129,29 @@ $popular_books = $db->query("
                     
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <img src="../assets/images/utility/comment.png" alt="Reviews">
+                            <i class="fas fa-comments"></i>
                         </div>
                         <div class="stat-info">
                             <span class="stat-number"><?php echo $stats['total_reviews']; ?></span>
                             <span class="stat-label">Total Review</span>
                         </div>
-                        <a href="reviews.php" class="stat-link">Monitor →</a>
+                        <a href="reviews.php" class="stat-link">Monitor </a>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-number"><?php echo $stats['total_genres']; ?></span>
+                            <span class="stat-label">Total Genre</span>
+                        </div>
+                        <a href="categories.php" class="stat-link">Kelola </a>
                     </div>
                 </div>
             </section>
 
-            <!-- Recent Activities -->
+            <!-- Recent Activities & Books -->
             <div class="admin-content-grid">
                 <section class="activities-section">
                     <div class="section-header">
@@ -142,7 +168,7 @@ $popular_books = $db->query("
                             <?php foreach ($recent_activities as $activity): ?>
                                 <div class="activity-item">
                                     <div class="activity-icon">
-                                        <img src="../assets/images/utility/comment.png" alt="Review">
+                                        <i class="fas fa-comment"></i>
                                     </div>
                                     <div class="activity-content">
                                         <p class="activity-text">
@@ -155,7 +181,7 @@ $popular_books = $db->query("
                                         </span>
                                     </div>
                                     <div class="activity-thumbnail">
-                                        <img src="../assets/images/books/<?php echo $activity['cover_image']; ?>" 
+                                        <img src="../assets/images/books/<?php echo $activity['cover_image'] ?? 'default-cover.png'; ?>" 
                                              alt="Book Cover"
                                              onerror="this.src='../assets/images/books/default-cover.png'">
                                     </div>
@@ -165,20 +191,20 @@ $popular_books = $db->query("
                     </div>
                 </section>
 
-                <!-- Popular Books-->
+                <!-- Recent Books -->
                 <section class="popular-books-section">
                     <div class="section-header">
-                        <h2>🔥Buku Populer</h2>
+                        <h2>Buku Terbaru</h2>
                         <a href="books.php" class="view-all">Lihat Semua</a>
                     </div>
                     <div class="popular-books-list">
-                        <?php if (empty($popular_books)): ?>
+                        <?php if (empty($recent_books)): ?>
                             <div class="empty-state" style="padding: var(--space-md);">
                                 <i class="fas fa-book-open"></i>
                                 <p>Belum ada buku</p>
                             </div>
                         <?php else: ?>
-                            <?php foreach ($popular_books as $book): ?>
+                            <?php foreach ($recent_books as $book): ?>
                                 <div class="popular-book-item">
                                     <div class="book-cover">
                                         <img src="../assets/images/books/<?php echo $book['cover_image'] ?? 'default-cover.png'; ?>" 
@@ -222,6 +248,14 @@ $popular_books = $db->query("
                         <p>Lihat dan edit semua buku</p>
                     </a>
                     
+                    <a href="categories.php" class="action-card">
+                        <div class="action-icon">
+                            <i class="fas fa-tags"></i>
+                        </div>
+                        <h3>Kelola Genre</h3>
+                        <p>Kelola kategori buku</p>
+                    </a>
+
                     <a href="reviews.php" class="action-card">
                         <div class="action-icon">
                             <i class="fas fa-comment-dots"></i>

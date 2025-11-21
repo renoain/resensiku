@@ -1,0 +1,91 @@
+-- Database: resensiku
+CREATE DATABASE IF NOT EXISTS resensiku CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE resensiku;
+
+-- Tabel users
+CREATE TABLE IF NOT EXISTS users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    profile_picture VARCHAR(255) DEFAULT NULL,
+    bio TEXT,
+    role ENUM('user', 'admin') DEFAULT 'user',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabel genres (sederhana, hanya untuk grouping)
+CREATE TABLE IF NOT EXISTS genres (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) UNIQUE NOT NULL,
+    description TEXT,
+    color VARCHAR(7) DEFAULT '#6D6158',
+    icon VARCHAR(50) DEFAULT 'book',
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Tabel books (genre langsung disimpan sebagai text di buku)
+CREATE TABLE IF NOT EXISTS books (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    cover_image VARCHAR(255),
+    synopsis TEXT,
+    publication_year YEAR,
+    page_count INT,
+    genres TEXT, -- Genre disimpan sebagai text (contoh: "Action, Romance, Fantasy")
+    average_rating DECIMAL(3,2) DEFAULT 0.00,
+    total_reviews INT DEFAULT 0,
+    is_featured BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabel bookshelf
+CREATE TABLE IF NOT EXISTS bookshelf (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    book_id INT NOT NULL,
+    status ENUM('want_to_read', 'reading', 'read') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_book (user_id, book_id)
+);
+
+-- Tabel reviews
+CREATE TABLE IF NOT EXISTS reviews (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    book_id INT NOT NULL,
+    rating TINYINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    review_text TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_user_book_review (user_id, book_id)
+);
+
+
+INSERT INTO users (first_name, last_name, email, password, role) VALUES 
+('Admin', 'Resensiku', 'admin@resensiku.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
+
+
+INSERT INTO genres (name, description, color, icon) VALUES 
+('Action', 'Buku dengan cerita penuh aksi dan petualangan', '#FF6B6B', 'bolt'),
+('Romance', 'Kisah cinta dan hubungan romantis', '#E91E63', 'heart'),
+('Fantasy', 'Cerita dengan elemen magis dan dunia imajinatif', '#9C27B0', 'dragon'),
+('Mystery', 'Cerita detektif dan teka-teki', '#3F51B5', 'search'),
+('Horror', 'Cerita menegangkan dan menakutkan', '#F44336', 'ghost'),
+('Comedy', 'Cerita lucu dan menghibur', '#FF9800', 'laugh'),
+('Drama', 'Cerita emosional dan kehidupan', '#2196F3', 'theater-masks'),
+('Sci-Fi', 'Fiksi ilmiah dan teknologi futuristik', '#00BCD4', 'robot'),
+('Historical', 'Cerita berdasarkan sejarah', '#795548', 'landmark'),
+('Biography', 'Kisah hidup orang nyata', '#607D8B', 'user'),
+('Education', 'Buku pendidikan dan pembelajaran', '#4CAF50', 'graduation-cap'),
+('Children', 'Buku untuk anak-anak', '#FFC107', 'child');
