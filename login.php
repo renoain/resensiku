@@ -86,7 +86,6 @@ if (isset($_SESSION['error'])) {
                         <span class="checkmark"></span>
                         Ingat Saya
                     </label>
-                    <a href="forgot-password.php" class="forgot-link">Lupa Password?</a>
                 </div>
                 
                 <button type="submit" class="btn btn-primary btn-full">

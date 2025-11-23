@@ -1,316 +1,489 @@
-    /* Import CSS dasar dari halaman sebelumnya jika ada */
-/* @import url('style.css'); */
+/* BOOKS.CSS - Styles for books browsing page */
 
-/* General Styling */
-body {
-    margin: 0;
-    font-family: 'Poppins', sans-serif;
-    background-color: #F8F5F2;
-    color: #8B7E74;
+/* Page Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--text-light);
 }
 
-a { text-decoration: none; color: inherit; }
-
-/* Header & Nav (Asumsikan sama seperti sebelumnya) */
-header { padding: 20px 80px; }
-.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.social-icons img { width: 20px; margin-right: 15px; opacity: 0.7; }
-.user-icon img { width: 30px; opacity: 0.7; }
-.navbar { display: flex; justify-content: space-between; align-items: center; }
-.nav-left .logo img { height: 40px; }
-.nav-center { flex-grow: 1; display: flex; justify-content: center; }
-.search-container { position: relative; width: 450px; height: 45px; background-image: url('search-bar-bg.png'); background-size: cover; }
-.search-bar { width: 100%; height: 100%; padding: 0 20px 0 50px; border: none; background-color: transparent; color: #8B7E74; font-family: 'Poppins', sans-serif; font-size: 14px; box-sizing: border-box; }
-.search-bar:focus { outline: none; }
-.nav-right ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 40px; font-size: 14px; font-weight: 500; }
-.nav-right .active { font-weight: 600; color: #6D6158; }
-
-/* Main Review Page Layout */
-.review-page {
-    display: flex;
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 0 40px;
-    gap: 60px;
+.page-title-section {
+  flex: 1;
 }
 
-.left-column {
-    flex: 0 0 250px; /* Lebar tetap untuk kolom kiri */
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+.page-title {
+  font-size: 2.2rem;
+  margin-bottom: var(--space-sm);
+  color: var(--text-dark);
+  font-family: var(--font-serif);
 }
 
-.right-column {
-    flex: 1; /* Kolom kanan mengisi sisa ruang */
+.page-subtitle {
+  font-size: 1.1rem;
+  color: var(--text-medium);
+  margin: 0;
 }
 
-/* Left Column Styling */
+.page-actions {
+  flex-shrink: 0;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--white);
+  color: var(--text-dark);
+  border: 2px solid var(--text-light);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--bg-primary);
+  border-color: var(--text-medium);
+  transform: translateY(-2px);
+}
+
+/* Books Content Layout */
+.books-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+/* Filters Sidebar */
+.filters-sidebar {
+  position: sticky;
+  top: 120px;
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-lg);
+  border: 1px solid var(--text-light);
+}
+
+.filter-section {
+  margin-bottom: var(--space-lg);
+}
+
+.filter-title {
+  font-size: 1.2rem;
+  margin-bottom: var(--space-lg);
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.filter-group {
+  margin-bottom: var(--space-lg);
+}
+
+.filter-group-title {
+  font-size: 1rem;
+  margin-bottom: var(--space-md);
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+/* Genre Filters */
+.genre-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.genre-filter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-sm) var(--space-md);
+  background: var(--white);
+  color: var(--text-medium);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.genre-filter:hover {
+  background: var(--bg-primary);
+  color: var(--text-dark);
+  border-color: var(--text-light);
+  transform: translateX(5px);
+}
+
+.genre-filter.active {
+  background: var(--text-dark);
+  color: var(--white);
+  border-color: var(--text-dark);
+}
+
+.genre-name {
+  font-weight: 500;
+}
+
+.genre-count {
+  background: var(--text-light);
+  color: var(--text-dark);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.genre-filter.active .genre-count {
+  background: var(--white);
+  color: var(--text-dark);
+}
+
+/* Filter Stats */
+.filter-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--text-light);
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-number {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: var(--text-dark);
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--text-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Books Main Content */
+.books-main {
+  min-height: 500px;
+}
+
+/* Books Grid */
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+
+.book-card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 1px solid var(--text-light);
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--text-medium);
+}
+
 .book-cover {
-    width: 100%;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+  position: relative;
+  height: 200px;
+  overflow: hidden;
 }
 
-.status-dropdown-container {
-    position: relative;
-    width: 100%;
+.book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.status-button {
-    width: 100%;
-    padding: 12px;
-    background-color: #8B7E74;
-    color: #F8F5F2;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 16px;
-    cursor: pointer;
-    text-align: center;
+.book-card:hover .book-cover img {
+  transform: scale(1.05);
 }
 
-.dropdown-content {
-    display: none; /* Disembunyikan, muncul saat hover/klik (JS) */
-    position: absolute;
-    background-color: #FFFFFF;
-    width: calc(100% - 2px);
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
-    border: 1px solid #EDE9E4;
-    border-radius: 8px;
-    z-index: 1;
-    margin-top: 5px;
-    padding: 10px 0;
+.book-status {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--white);
+  color: var(--text-dark);
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-sm);
 }
 
-/* Simulasi dropdown terbuka */
-.status-dropdown-container:hover .dropdown-content {
-    display: block;
+.book-info {
+  padding: var(--space-md);
 }
 
-.dropdown-content label {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 20px;
-    cursor: pointer;
+.book-title {
+  font-size: 1.1rem;
+  margin-bottom: var(--space-xs);
+  color: var(--text-dark);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  height: 2.6em;
 }
 
-.dropdown-content label:hover { background-color: #F8F5F2; }
-.dropdown-content input[type="radio"] { accent-color: #8B7E74; }
-.rate-this-book { text-align: center; margin-top: 25px; }
-
-/* Mengatur gaya bintang di bagian "Rate this book" */
-.rating-stars .star-icon {
-    font-size: 42px;         /* INI YANG MEMBUAT BINTANG JADI BESAR */
-    color: #d1c8c1;          /* Warna bintang saat kosong */
-    cursor: pointer;         /* Tanda bahwa bintang bisa diklik */
-    margin: 0 3px;           /* Jarak antar bintang */
-    line-height: 1;          /* Memperbaiki alignment vertikal */
-    transition: color 0.2s ease-in-out; /* Animasi perubahan warna */
+.book-author {
+  color: var(--text-medium);
+  font-size: 0.9rem;
+  margin-bottom: var(--space-sm);
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* Gaya untuk bintang yang sudah terisi (diaktifkan oleh JavaScript) */
-.rating-stars .star-icon.filled {
-    color: #88776A;
+.book-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
 }
 
-/* Right Column Styling */
-.book-title { font-size: 48px; margin: 0; color: #6D6158; }
-.book-author { font-size: 18px; margin: 5px 0 20px 0; }
-.rating-summary { 
-    display: flex; 
-    align-items: center; 
-    gap: 10px; 
-    font-size: 14px; 
-    margin-bottom: 25px; 
+.book-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
 }
 
-.rating-stars-full span {
-    font-size: 24px; /* Ubah ukuran bintang di sini */
-    line-height: 1;  /* Menjaga alignment */
+.stars {
+  color: #ffd700;
+  font-size: 0.9rem;
 }
 
-.star-full, .star-half {
-    color: #8B7E74; /* Warna bintang yang terisi */
+.book-rating span {
+  font-size: 0.9rem;
+  color: var(--text-medium);
 }
 
-.star-empty {
-    color: #d1c8c1; /* Warna bintang yang kosong */
+.book-year {
+  font-size: 0.8rem;
+  color: var(--text-medium);
+  background: var(--bg-primary);
+  padding: 2px 8px;
+  border-radius: 10px;
 }
 
-.rating-score { 
-    font-weight: bold; 
-    font-size: 18px; 
+.book-genres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
-.rating-score { font-weight: bold; font-size: 18px; }
-.synopsis { line-height: 1.7; text-align: justify; margin-bottom: 30px; }
-
-.book-meta .genres { margin-bottom: 15px; }
-.book-meta .genres span { margin-right: 10px; }
-.genre-tag { background-color: #EDE9E4; padding: 5px 15px; border-radius: 15px; font-size: 12px; }
-.book-meta p { font-size: 14px; margin: 5px 0; }
-
-/* Review Section */
-.review-section { margin-top: 30px; border-top: 1px solid #EDE9E4; padding-top: 30px; }
-.write-review-btn { background-color: #8B7E74; color: #F8F5F2; border: none; padding: 10px 25px; border-radius: 8px; font-size: 14px; cursor: pointer; }
-
-.review-input-box { position: relative; margin-top: 15px; }
-.review-input-box textarea { width: 100%; height: 120px; border: 1px solid #EDE9E4; border-radius: 8px; resize: vertical; padding: 15px; box-sizing: border-box; background-color: #FFFFFF; font-family: 'Poppins', sans-serif; }
-.submit-review-icon { position: absolute; bottom: 15px; right: 15px; background: none; border: none; cursor: pointer; }
-.submit-review-icon img { width: 24px; }
-
-/* Submitted Review Section (dari Gambar 3) */
-.submitted-review-section { margin-top: 30px; border-top: 1px solid #EDE9E4; padding-top: 30px; }
-.user-rating-display { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-.user-rating-display .stars img { width: 30px; }
-.user-rating-display span { font-size: 18px; font-weight: bold; }
-.your-review-card { padding-top: 20px; }
-.your-review-card h3 { font-weight: 500; font-size: 14px; letter-spacing: 1px; margin-bottom: 20px; }
-.review-author .avatar { width: 50px; border-radius: 50%; }
-.review-text { margin-top: 15px; line-height: 1.7; }
-.review-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
-.review-actions .likes img { width: 20px; margin-right: 15px; cursor: pointer; opacity: 0.7; }
-.review-actions .edit-icon { width: 20px; cursor: pointer; opacity: 0.7; }
-
-
-/* Dropdown Menu Styling for BOOKSHELF */
-/* Catatan: Pastikan .nav-right ul sudah memiliki 'position: relative;' di kode Anda */
-.nav-right ul {
-    position: relative; /* Wajib ada di elemen induk (<ul>) */
+.genre-tag {
+  background: var(--text-light);
+  color: var(--text-dark);
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border: 1px solid rgba(139, 126, 116, 0.2);
 }
 
-.dropdown-li {
-    position: relative; /* Wajib ada di elemen induk dropdown (<li>) */
+/* Empty State */
+.books-empty {
+  text-align: center;
+  padding: var(--space-xl);
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  border: 2px dashed var(--text-light);
 }
 
-.dropdown-menu {
-    display: none; /* Kunci: Menyembunyikan dropdown secara default. */
-    position: absolute;
-    top: 100%;
-    left: 0;
-    background-color: #EDE9E4; 
-    min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.1);
-    z-index: 10; 
-    margin-top: 10px; 
-    padding: 10px 0;
-    border-radius: 5px;
+.empty-icon {
+  font-size: 4rem;
+  color: var(--text-light);
+  margin-bottom: var(--space-lg);
 }
 
-.dropdown-menu a {
-    color: #8B7E74;
-    padding: 12px 16px;
-    display: block;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.5px;
+.books-empty h3 {
+  margin-bottom: var(--space-sm);
+  color: var(--text-dark);
+  font-size: 1.5rem;
 }
 
-.dropdown-menu a:hover {
-    background-color: #D1C8C1;
+.books-empty p {
+  margin-bottom: var(--space-lg);
+  color: var(--text-medium);
+  font-size: 1rem;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-/* KUNCI INTERAKSI: Tampilkan dropdown saat kursor mengarah ke elemen induk */
-.dropdown-li:hover .dropdown-menu {
-    display: block;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--text-dark);
+  color: var(--white);
+  border: none;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  cursor: pointer;
 }
 
-/* review CSS.css */
-
-/* --- BARU: Gaya untuk Tombol Cancel --- */
-.cancel-review-btn {
-    background-color: #373A40; 
-    color: #F8F5F2;
-    border: 1px solid #282b30; 
-    padding: 10px 25px; 
-    border-radius: 8px; 
-    font-size: 14px; 
-    cursor: pointer; 
+.btn:hover {
+  background: var(--text-medium);
+  transform: translateY(-2px);
 }
 
-/* --- BARU: Gaya untuk Hitungan Kata --- */
-.word-count-display {
-    position: absolute;
-    bottom: 20px; /* Sedikit lebih ke atas dari bawah */
-    left: 20px;  /* Jarak dari kiri */
-    font-size: 12px;
-    color: #A9A9A9; 
-    z-index: 10;
+.btn-primary {
+  background: var(--text-dark);
 }
 
-/* --- BARU: Gaya untuk Pop-up Notifikasi --- */
-.popup-container {
-    display: none; 
-    position: fixed;
-    z-index: 1000; 
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden; 
-    background-color: rgba(0,0,0,0.4); 
-    backdrop-filter: blur(3px); 
+.btn-primary:hover {
+  background: var(--text-medium);
 }
 
-.popup-content {
-    background-color: #EDE9E4; 
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 30px;
-    border: 1px solid #8B7E74;
-    border-radius: 12px;
-    width: 300px;
-    text-align: center;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-lg) 0;
+  border-top: 1px solid var(--text-light);
 }
 
-.popup-icon {
-    font-size: 50px;
-    color: #8B7E74;
-    display: block;
-    margin-bottom: 10px;
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--white);
+  color: var(--text-dark);
+  text-decoration: none;
+  border: 2px solid var(--text-light);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
-.popup-content h3 {
-    color: #6D6158;
-    margin: 0;
-    font-weight: 600;
+.pagination-btn:hover {
+  background: var(--bg-primary);
+  border-color: var(--text-medium);
 }
 
-/* review CSS.css */
-
-.rating-stars {
-    /* KUNCI 1: Membalik urutan visual bintang. Bintang 1 (data-rating="1") sekarang di sebelah kanan. */
-    direction: rtl; 
-    /* Agar bintang 5 tetap muncul di paling kanan saat di-hover/klik */
-    display: inline-block;
+.pagination-numbers {
+  display: flex;
+  gap: 8px;
 }
 
-.rating-stars .star-icon {
-    /* Bintang individu harus dikembalikan ke arah LTR agar simbol bintang tetap benar */
-    direction: ltr; 
-    
-    /* Warna bintang saat kosong */
-    color: #d1c8c1; 
-    font-size: 42px;
-    cursor: pointer; 
-    margin: 0 3px; 
-    line-height: 1;
-    transition: color 0.2s ease-in-out; 
+.pagination-number {
+  padding: var(--space-sm) var(--space-md);
+  background: var(--white);
+  color: var(--text-dark);
+  text-decoration: none;
+  border: 2px solid var(--text-light);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  transition: all 0.3s ease;
+  min-width: 40px;
+  text-align: center;
 }
 
-/* KUNCI 2: Efek Hover (Ini mengisi semua bintang di sebelah kiri bintang yang di-hover) */
-/* Karena urutan elemen terbalik (rtl), :hover ~ star-icon berarti "semua bintang ke kiri" */
-.rating-stars .star-icon:hover,
-.rating-stars .star-icon:hover ~ .star-icon {
-    color: #88776A; /* Warna cokelat yang lebih gelap saat di-hover */
+.pagination-number:hover {
+  background: var(--bg-primary);
+  border-color: var(--text-medium);
 }
 
-/* KUNCI 3: Gaya untuk bintang yang sudah terisi (setelah diklik oleh JavaScript) */
-.rating-stars .star-icon.filled {
-    color: #88776A;
+.pagination-number.active {
+  background: var(--text-dark);
+  color: var(--white);
+  border-color: var(--text-dark);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .books-content {
+    grid-template-columns: 250px 1fr;
+    gap: var(--space-lg);
+  }
+
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .books-content {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+
+  .filters-sidebar {
+    position: static;
+    order: 2;
+  }
+
+  .books-main {
+    order: 1;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-md);
+  }
+
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-md);
+  }
+
+  .pagination {
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .books-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .page-title {
+    font-size: 1.8rem;
+  }
+
+  .pagination-numbers {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }

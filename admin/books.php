@@ -247,7 +247,7 @@ if ($action == 'edit' && isset($_GET['id'])) {
                                     <h3><?php echo htmlspecialchars($book['title']); ?></h3>
                                     <p class="book-author"><?php echo htmlspecialchars($book['author']); ?></p>
                                     
-                                    <!-- TAMPILKAN RATING -->
+                                    <!-- RATING -->
                                     <div class="book-stats" style="margin-bottom: var(--space-sm);">
                                         <div class="rating">
                                             <i class="fas fa-star"></i>
@@ -293,8 +293,8 @@ if ($action == 'edit' && isset($_GET['id'])) {
                     <?php endif; ?>
                 </section>
 
-            <?php elseif ($action == 'add' || $action == 'edit'): ?>
                 <!-- Add/Edit Book Form -->
+            <?php elseif ($action == 'add' || $action == 'edit'): ?>
                 <section class="book-form-section">
                     <div class="section-header">
                         <h2>
