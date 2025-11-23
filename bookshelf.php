@@ -216,11 +216,6 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                 
                 <div class="bookshelf-actions">
                     <div class="sort-dropdown">
-                        <button class="sort-button">
-                            <i class="fas fa-sort"></i>
-                            Urutkan
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
                     </div>
                 </div>
             </div>

@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $file_size = $_FILES['cover_image']['size'];
             
             if (in_array($file_type, $allowed_types)) {
-                if ($file_size < 2097152) { // 2MB max
+                if ($file_size < 2097152) { 
                     $file_extension = pathinfo($_FILES['cover_image']['name'], PATHINFO_EXTENSION);
                     $cover_image = uniqid('book_') . '.' . $file_extension;
                     $upload_path = '../assets/images/books/' . $cover_image;

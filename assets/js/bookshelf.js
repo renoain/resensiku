@@ -131,14 +131,11 @@ function updateBookStatusUI(bookId, status) {
 }
 
 function updateStatsCount() {
-  // This would typically update the stats numbers
-  // For now, we'll just show a notification
   showNotification("Status berhasil diupdate!", "success");
 }
 
 // Utility Functions
 function showNotification(message, type = "info") {
-  // Remove existing notifications
   const existingNotifications = document.querySelectorAll(".notification");
   existingNotifications.forEach((notification) => notification.remove());
 

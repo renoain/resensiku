@@ -14,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $database = new Database();
 $db = $database->getConnection();
 
-// Get action from query string or POST data
 $action = $_GET['action'] ?? $_POST['action'] ?? '';
 
 switch ($action) {
@@ -52,7 +51,6 @@ function handleLogin() {
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
         
         if ($user && password_verify($password, $user['password'])) {
-            // Regenerate session ID for security
             session_regenerate_id(true);
             
             $_SESSION['user_id'] = $user['id'];

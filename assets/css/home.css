@@ -288,8 +288,8 @@
 .books-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 20px; /* Gap lebih kecil */
-  padding: 0 10px; /* Sedikit padding untuk alignment */
+  gap: 20px;
+  padding: 0 10px;
 }
 
 .book-card {
@@ -310,7 +310,7 @@
 
 .book-cover {
   position: relative;
-  height: 300px; /* Sedikit lebih pendek */
+  height: 300px;
   overflow: hidden;
 }
 
@@ -352,7 +352,7 @@
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  height: 2.6em; /* Fixed height untuk konsistensi */
+  height: 2.6em;
 }
 
 .book-author {
@@ -420,8 +420,8 @@
 .genres-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 15px; /* Gap lebih kecil */
-  padding: 0 10px; /* Sedikit padding untuk alignment */
+  gap: 15px;
+  padding: 0 10px;
 }
 
 .genre-card {
@@ -499,10 +499,10 @@
   margin: 0;
 }
 
-/* Compact Layout untuk layar besar */
+/* Compact Layout     */
 @media (min-width: 1400px) {
   .container {
-    max-width: 95%; /* Gunakan hampir seluruh lebar layar */
+    max-width: 95%;
     padding: 0 15px;
   }
 
@@ -517,7 +517,7 @@
   }
 }
 
-/* Responsive Design untuk tablet */
+/* Responsive Design tablet */
 @media (max-width: 1024px) {
   .container {
     max-width: 100%;
@@ -548,7 +548,7 @@
   }
 }
 
-/* Responsive Design untuk mobile */
+/* Responsive Design mobile */
 @media (max-width: 768px) {
   .header-content {
     flex-direction: row;
@@ -651,6 +651,6 @@
   }
 
   .user-trigger span {
-    display: none; /* Sembunyikan teks nama di mobile sangat kecil */
+    display: none;
   }
 }

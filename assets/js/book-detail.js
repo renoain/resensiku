@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
   initializeUserDropdown();
 });
 
-// Bookshelf Dropdown Functionality - CLICK VERSION
+// Bookshelf Dropdown Functionality
 function initializeBookshelfDropdown() {
   const bookshelfDropdown = document.getElementById("bookshelfDropdown");
 
@@ -558,8 +558,6 @@ function initializeSearch() {
 
 // Utility Functions
 function updateAverageRating() {
-  // This would typically be updated from server response
-  // For now, we'll just increment the count
   const totalReviews = document.getElementById("totalReviews");
   if (totalReviews) {
     const currentCount = parseInt(totalReviews.textContent);

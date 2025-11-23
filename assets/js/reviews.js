@@ -1,4 +1,3 @@
-// REVIEWS SYSTEM JAVASCRIPT - UPDATED FOR NEW API
 class ReviewSystem {
   constructor() {
     this.currentRating = 0;
@@ -13,7 +12,7 @@ class ReviewSystem {
     this.initCharacterCounter();
   }
 
-  // STAR RATING SYSTEM (tetap sama)
+  // STAR RATING SYSTEM
   initStarRating() {
     const stars = document.querySelectorAll(".star");
 
@@ -77,7 +76,7 @@ class ReviewSystem {
     document.querySelector(".star-rating").appendChild(feedback);
   }
 
-  // REVIEW FORM SUBMISSION - UPDATED API ENDPOINT
+  // REVIEW FORM SUBMISSION
   initReviewForm() {
     const reviewForm = document.getElementById("reviewForm");
     if (reviewForm) {
@@ -105,7 +104,6 @@ class ReviewSystem {
     submitBtn.disabled = true;
 
     try {
-      // Updated API endpoint
       const response = await fetch("api/reviews.php?action=submit", {
         method: "POST",
         body: formData,
@@ -131,7 +129,7 @@ class ReviewSystem {
     }
   }
 
-  // REPLY SYSTEM - UPDATED API ENDPOINT
+  // REPLY SYSTEM
   initReplySystem() {
     document.addEventListener("click", (e) => {
       if (e.target.classList.contains("reply-btn")) {
@@ -194,8 +192,6 @@ class ReviewSystem {
       const formData = new FormData();
       formData.append("review_id", reviewId);
       formData.append("reply_content", content);
-
-      // Updated API endpoint
       const response = await fetch("api/reviews.php?action=submit_reply", {
         method: "POST",
         body: formData,
@@ -220,7 +216,7 @@ class ReviewSystem {
     }
   }
 
-  // LIKE SYSTEM - UPDATED API ENDPOINT
+  // LIKE SYSTEM
   initLikeSystem() {
     document.addEventListener("click", (e) => {
       if (
@@ -244,7 +240,6 @@ class ReviewSystem {
       formData.append("review_id", reviewId);
       formData.append("action", isLiked ? "unlike" : "like");
 
-      // Updated API endpoint
       const response = await fetch("api/reviews.php?action=like", {
         method: "POST",
         body: formData,
@@ -257,7 +252,6 @@ class ReviewSystem {
         const likeCount = likeBtn.querySelector(".like-count");
         likeCount.textContent = result.likes_count;
 
-        // Update icon
         const icon = likeBtn.querySelector("i");
         icon.className = likeBtn.classList.contains("liked")
           ? "fas fa-heart"
@@ -268,7 +262,7 @@ class ReviewSystem {
     }
   }
 
-  // CHARACTER COUNTER (tetap sama)
+  // CHARACTER COUNTER
   initCharacterCounter() {
     const textarea = document.getElementById("review_text");
     const counter = document.querySelector(".char-counter");
@@ -289,7 +283,7 @@ class ReviewSystem {
     }
   }
 
-  // HELPER METHODS (tetap sama)
+  // HELPER METHODS
   showAlert(message, type) {
     const existingAlert = document.querySelector(".alert-toast");
     if (existingAlert) {

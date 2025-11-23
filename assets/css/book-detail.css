@@ -1,5 +1,3 @@
-/* BOOK-DETAIL.CSS - Styles for book detail page */
-
 /* Header Styles (from home.css) */
 .user-header {
   background: var(--white);
@@ -212,7 +210,7 @@
   gap: var(--space-md);
 }
 
-/* Bookshelf Dropdown - CLICK VERSION */
+/* Bookshelf Dropdown */
 .status-dropdown {
   position: relative;
   width: 100%;

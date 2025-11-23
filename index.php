@@ -134,7 +134,7 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
     <main class="main-content">
         <div class="container">
             <!-- Hero Section -->
-            <section class="hero-section">
+            <!-- <section class="hero-section">
                 <h1 class="hero-title">
                     <?php if (!empty($search)): ?>
                     <?php else: ?>
@@ -147,7 +147,7 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                         Jelajahi koleksi buku terbaik, berikan review, dan kelola bookshelf pribadi Anda
                     <?php endif; ?>
                 </p>
-            </section>
+            </section> -->
 
             <!-- Featured Books (Hide when searching) -->
             <?php if (!empty($featured_books) && empty($search)): ?>

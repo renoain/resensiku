@@ -1,6 +1,4 @@
-// Book card interactions
 document.addEventListener("DOMContentLoaded", function () {
-  // Add hover effects to book cards
   const bookCards = document.querySelectorAll(".book-card");
 
   bookCards.forEach((card) => {

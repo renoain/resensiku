@@ -188,10 +188,11 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                             </div>
                         </div>
 
-                        <!-- Quick Rating dimatikan -->
+                        <!-- Quick Rating  -->
                         <!-- <div class="quick-rating">
                             <div class="rating-title">Rating Saya:</div>
-                            <div class="rating-stars-large" id="quickRating" data-current-rating="<?php echo $user_review['rating'] ?? 0; ?>">
+                            <div class="rating-stars-large" id="quickRating" data-current-rating="
+                            <?php echo $user_review['rating'] ?? 0; ?>">
                                 <?php 
                                 $user_rating = $user_review['rating'] ?? 0;
                                 for ($i = 1; $i <= 5; $i++): 

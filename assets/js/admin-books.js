@@ -1,5 +1,3 @@
-// admin-books.js - JavaScript for admin books management
-
 document.addEventListener("DOMContentLoaded", function () {
   initBookForm();
   initImageUpload();

@@ -1,7 +1,4 @@
 <?php
-// config/constants.php
-
-// Session must start at the very beginning
 if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }

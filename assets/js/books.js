@@ -1,5 +1,3 @@
-// books.js - JavaScript for books page with multiple genre filter
-
 document.addEventListener("DOMContentLoaded", function () {
   initializeUserDropdown();
   initializeSearch();
@@ -129,11 +127,10 @@ function initializeGenreCheckboxes() {
     updateGenreFilterState(checkbox);
   });
 
-  // Add click handlers for genre filter labels (for better UX)
+  // Add click handlers for genre filter labels
   const genreLabels = document.querySelectorAll(".genre-filter-checkbox");
   genreLabels.forEach((label) => {
     label.addEventListener("click", function (e) {
-      // Don't trigger if clicking on the actual checkbox
       if (e.target.type !== "checkbox") {
         const checkbox = this.querySelector(".genre-checkbox");
         if (checkbox) {
@@ -318,7 +315,6 @@ function syncCheckboxesWithURL() {
 
 // Show Loading State
 function showLoadingState() {
-  // Add loading class to apply button
   const applyButton = document.getElementById("applyGenreFilter");
   if (applyButton) {
     const originalHTML = applyButton.innerHTML;
