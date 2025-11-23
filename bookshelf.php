@@ -116,20 +116,25 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                         <span><?php echo explode(' ', $user_name)[0]; ?></span>
                         <i class="fas fa-chevron-down"></i>
                     </button>
-                    <div class="dropdown-menu">
-                        <a href="bookshelf.php" class="dropdown-item active">
-                            <i class="fas fa-bookmark"></i>
-                            <span>Bookshelf Saya</span>
-                        </a>
-                        <a href="profile.php" class="dropdown-item">
-                            <i class="fas fa-user"></i>
-                            <span>Profil Saya</span>
-                        </a>
-                        <a href="logout.php" class="dropdown-item">
-                            <i class="fas fa-sign-out-alt"></i>
-                            <span>Logout</span>
-                        </a>
-                    </div>
+                        <div class="dropdown-menu">
+                            <a href="books.php" class="dropdown-item active">
+                                <i class="fas fa-tags"></i>
+                                <span>Jelajahi Genre</span>
+                            </a>
+                            <a href="bookshelf.php" class="dropdown-item">
+                                <i class="fas fa-bookmark"></i>
+                                <span>Bookshelf Saya</span>
+                            </a>
+                            <!-- <a href="profile.php" class="dropdown-item">
+                                <i class="fas fa-user"></i>
+                                <span>Profil Saya</span>
+                            </a> -->
+                            <div class="dropdown-divider"></div>
+                            <a href="logout.php" class="dropdown-item">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
                 </div>
             </nav>
         </div>

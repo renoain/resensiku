@@ -13,6 +13,7 @@ $db = $database->getConnection();
 
 // Get filter parameters
 $genre = $_GET['genre'] ?? '';
+$genres = isset($_GET['genres']) ? (array)$_GET['genres'] : [];
 $search = $_GET['search'] ?? '';
 $page = $_GET['page'] ?? 1;
 $limit = 12;
@@ -22,7 +23,19 @@ $offset = ($page - 1) * $limit;
 $whereConditions = [];
 $params = [];
 
-if (!empty($genre)) {
+// Handle multiple genres filter
+if (!empty($genres)) {
+    $genreConditions = [];
+    foreach ($genres as $selectedGenre) {
+        $genreConditions[] = "b.genres LIKE ?";
+        $params[] = "%" . trim($selectedGenre) . "%";
+    }
+    if (!empty($genreConditions)) {
+        $whereConditions[] = "(" . implode(" OR ", $genreConditions) . ")";
+    }
+} 
+// Handle single genre filter (for backward compatibility)
+elseif (!empty($genre)) {
     $whereConditions[] = "b.genres LIKE ?";
     $params[] = "%$genre%";
 }
@@ -50,10 +63,7 @@ $totalBooks = $countStmt->fetch()['total'];
 $totalPages = ceil($totalBooks / $limit);
 
 // Get books with pagination
-$params[] = $limit;
-$params[] = $offset;
-
-$stmt = $db->prepare("
+$booksQuery = "
     SELECT b.*, 
            AVG(r.rating) as avg_rating,
            COUNT(r.id) as review_count,
@@ -64,22 +74,20 @@ $stmt = $db->prepare("
     $whereClause
     GROUP BY b.id 
     ORDER BY b.created_at DESC 
-    LIMIT ? OFFSET ?
-");
+    LIMIT $limit OFFSET $offset
+";
+
+$stmt = $db->prepare($booksQuery);
 $stmt->execute($params);
 $books = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Get all genres for filter
 $genresStmt = $db->query("
-    SELECT DISTINCT TRIM(SUBSTRING_INDEX(SUBSTRING_INDEX(genres, ',', numbers.n), ',', -1)) as genre_name,
-           COUNT(*) as book_count
-    FROM books 
-    CROSS JOIN (
-        SELECT 1 n UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5
-    ) numbers
-    WHERE CHAR_LENGTH(genres) - CHAR_LENGTH(REPLACE(genres, ',', '')) >= numbers.n - 1
-    GROUP BY genre_name
-    ORDER BY book_count DESC
+    SELECT g.*, 
+           (SELECT COUNT(*) FROM books WHERE genres LIKE CONCAT('%', g.name, '%')) as book_count
+    FROM genres g 
+    WHERE g.is_active = TRUE 
+    ORDER BY g.name
 ");
 $allGenres = $genresStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -113,12 +121,13 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
 
             <!-- Search Bar -->
             <div class="search-section">
-                <form class="search-form" method="GET" action="books.php">
+                <form class="search-form" method="GET" action="books.php" id="searchForm">
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" name="search" placeholder="Cari buku, penulis, atau genre..." value="<?php echo htmlspecialchars($search); ?>">
-                    <?php if (!empty($genre)): ?>
-                        <input type="hidden" name="genre" value="<?php echo htmlspecialchars($genre); ?>">
-                    <?php endif; ?>
+                    <!-- Hidden fields for selected genres -->
+                    <?php foreach ($genres as $selectedGenre): ?>
+                        <input type="hidden" name="genres[]" value="<?php echo htmlspecialchars($selectedGenre); ?>">
+                    <?php endforeach; ?>
                 </form>
             </div>
 
@@ -131,14 +140,19 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="dropdown-menu">
+                        <a href="books.php" class="dropdown-item active">
+                            <i class="fas fa-tags"></i>
+                            <span>Jelajahi Genre</span>
+                        </a>
                         <a href="bookshelf.php" class="dropdown-item">
                             <i class="fas fa-bookmark"></i>
                             <span>Bookshelf Saya</span>
                         </a>
-                        <a href="profile.php" class="dropdown-item">
+                        <!-- <a href="profile.php" class="dropdown-item">
                             <i class="fas fa-user"></i>
                             <span>Profil Saya</span>
-                        </a>
+                        </a> -->
+                        <div class="dropdown-divider"></div>
                         <a href="logout.php" class="dropdown-item">
                             <i class="fas fa-sign-out-alt"></i>
                             <span>Logout</span>
@@ -156,17 +170,21 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
             <div class="page-header">
                 <div class="page-title-section">
                     <h1 class="page-title">
-                        <?php if (!empty($genre)): ?>
-                            📚 Buku Genre: <?php echo htmlspecialchars($genre); ?>
+                        <?php if (!empty($genres)): ?>
+                           <?php echo htmlspecialchars(implode(', ', $genres)); ?>
+                        <?php elseif (!empty($genre)): ?>
+                            <?php echo htmlspecialchars($genre); ?>
                         <?php elseif (!empty($search)): ?>
-                            🔍 Hasil Pencarian: "<?php echo htmlspecialchars($search); ?>"
+                             Hasil Pencarian: "<?php echo htmlspecialchars($search); ?>"
                         <?php else: ?>
-                            📖 Semua Buku
+                            Semua Buku
                         <?php endif; ?>
                     </h1>
                     <p class="page-subtitle">
                         <?php 
-                        if (!empty($genre)) {
+                        if (!empty($genres)) {
+                            echo "Menampilkan buku dengan genre " . htmlspecialchars(implode(', ', $genres));
+                        } elseif (!empty($genre)) {
                             echo "Menampilkan buku dengan genre " . htmlspecialchars($genre);
                         } elseif (!empty($search)) {
                             echo "Ditemukan $totalBooks buku untuk \"" . htmlspecialchars($search) . "\"";
@@ -175,6 +193,25 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                         }
                         ?>
                     </p>
+                    
+                    <!-- Selected Genres Tags -->
+                    <?php if (!empty($genres)): ?>
+                    <div class="selected-genres-tags">
+                        <strong>Genre terpilih:</strong>
+                        <?php foreach ($genres as $selectedGenre): ?>
+                            <span class="selected-genre-tag">
+                                <?php echo htmlspecialchars($selectedGenre); ?>
+                                <button type="button" class="remove-genre-btn" data-genre="<?php echo htmlspecialchars($selectedGenre); ?>">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </span>
+                        <?php endforeach; ?>
+                        <button type="button" class="clear-all-genres-btn">
+                            <i class="fas fa-times-circle"></i>
+                            Hapus Semua
+                        </button>
+                    </div>
+                    <?php endif; ?>
                 </div>
                 <div class="page-actions">
                     <a href="books.php" class="btn-secondary">
@@ -194,17 +231,37 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                             Filter Buku
                         </h3>
                         
-                        <!-- Genre Filter -->
+                        <!-- Multiple Genre Filter -->
                         <div class="filter-group">
-                            <h4 class="filter-group-title">Genre</h4>
+                            <div class="filter-group-header">
+                                <h4 class="filter-group-title">Pilih Genre</h4>
+                                <small class="filter-subtitle">Pilih lebih dari satu genre</small>
+                            </div>
                             <div class="genre-filters">
                                 <?php foreach ($allGenres as $genreItem): ?>
-                                    <a href="books.php?genre=<?php echo urlencode($genreItem['genre_name']); ?>" 
-                                       class="genre-filter <?php echo $genre === $genreItem['genre_name'] ? 'active' : ''; ?>">
-                                        <span class="genre-name"><?php echo htmlspecialchars($genreItem['genre_name']); ?></span>
-                                        <span class="genre-count"><?php echo $genreItem['book_count']; ?></span>
-                                    </a>
+                                    <label class="genre-filter-checkbox <?php echo in_array($genreItem['name'], $genres) ? 'active' : ''; ?>">
+                                        <input type="checkbox" 
+                                               name="genres[]" 
+                                               value="<?php echo htmlspecialchars($genreItem['name']); ?>" 
+                                               <?php echo in_array($genreItem['name'], $genres) ? 'checked' : ''; ?>
+                                               class="genre-checkbox">
+                                        <div class="genre-filter-icon">
+                                            <i class="fas fa-<?php echo $genreItem['icon'] ?? 'book'; ?>"></i>
+                                        </div>
+                                        <div class="genre-filter-info">
+                                            <span class="genre-name"><?php echo htmlspecialchars($genreItem['name']); ?></span>
+                                            <span class="genre-count"><?php echo $genreItem['book_count']; ?> buku</span>
+                                        </div>
+                                    </label>
                                 <?php endforeach; ?>
+                            </div>
+                            
+                            <!-- Apply Filters Button -->
+                            <div class="filter-actions">
+                                <button type="button" id="applyGenreFilter" class="btn-primary btn-full">
+                                    <i class="fas fa-check"></i>
+                                    Terapkan Filter
+                                </button>
                             </div>
                         </div>
 
@@ -218,6 +275,12 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                                 <span class="stat-number"><?php echo count($allGenres); ?></span>
                                 <span class="stat-label">Genre</span>
                             </div>
+                            <?php if (!empty($genres)): ?>
+                            <div class="stat-item">
+                                <span class="stat-number"><?php echo count($genres); ?></span>
+                                <span class="stat-label">Genre Dipilih</span>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </aside>
@@ -231,7 +294,9 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                             </div>
                             <h3>Buku Tidak Ditemukan</h3>
                             <p>
-                                <?php if (!empty($genre)): ?>
+                                <?php if (!empty($genres)): ?>
+                                    Tidak ada buku dengan genre "<?php echo htmlspecialchars(implode(', ', $genres)); ?>".
+                                <?php elseif (!empty($genre)): ?>
                                     Tidak ada buku dengan genre "<?php echo htmlspecialchars($genre); ?>".
                                 <?php elseif (!empty($search)): ?>
                                     Tidak ada buku yang cocok dengan pencarian "<?php echo htmlspecialchars($search); ?>".
@@ -291,7 +356,7 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                                         <div class="book-genres">
                                             <?php 
                                             $book_genres = explode(',', $book['genres']);
-                                            foreach (array_slice($book_genres, 0, 2) as $book_genre): 
+                                            foreach (array_slice($book_genres, 0, 3) as $book_genre): 
                                                 if (!empty(trim($book_genre))):
                                             ?>
                                                 <span class="genre-tag"><?php echo trim($book_genre); ?></span>
@@ -349,24 +414,8 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
         <div class="footer-content">
             <div class="footer-section">
                 <img src="assets/images/logo/Resensiku.png" alt="Resensiku" class="footer-logo">
-                <p class="footer-text">Platform review buku terbaik untuk pembaca Indonesia.</p>
+                <p class="footer-text">Platform review buku  untuk pembaca.</p>
             </div>
-            <div class="footer-section">
-                <h4>Tautan Cepat</h4>
-                <a href="index.php">Beranda</a>
-                <a href="books.php">Semua Buku</a>
-                <a href="bookshelf.php">Bookshelf</a>
-                <a href="about.php">Tentang Kami</a>
-            </div>
-            <div class="footer-section">
-                <h4>Kontak</h4>
-                <p>Email: info@resensiku.com</p>
-                <p>Telepon: (021) 1234-5678</p>
-            </div>
-        </div>
-        <div class="footer-bottom">
-            <p>&copy; 2024 Resensiku. All rights reserved.</p>
-        </div>
     </footer>
 
     <script src="assets/js/books.js"></script>

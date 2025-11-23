@@ -46,7 +46,7 @@ $stmt = $db->prepare("SELECT * FROM reviews WHERE user_id = ? AND book_id = ?");
 $stmt->execute([$_SESSION['user_id'], $book_id]);
 $user_review = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// Get other reviews
+// Get other reviews - FIXED: Include all reviews from other users
 $stmt = $db->prepare("
     SELECT r.*, u.first_name, u.last_name 
     FROM reviews r 
@@ -103,18 +103,24 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="dropdown-menu">
+                        <a href="books.php" class="dropdown-item active">
+                            <i class="fas fa-tags"></i>
+                            <span>Jelajahi Genre</span>
+                        </a>
                         <a href="bookshelf.php" class="dropdown-item">
                             <i class="fas fa-bookmark"></i>
                             <span>Bookshelf Saya</span>
                         </a>
-                        <a href="profile.php" class="dropdown-item">
+                        <!-- <a href="profile.php" class="dropdown-item">
                             <i class="fas fa-user"></i>
                             <span>Profil Saya</span>
-                        </a>
+                        </a> -->
+                        <div class="dropdown-divider"></div>
                         <a href="logout.php" class="dropdown-item">
                             <i class="fas fa-sign-out-alt"></i>
                             <span>Logout</span>
                         </a>
+                    </div>
                     </div>
                 </div>
             </nav>
@@ -182,8 +188,8 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                             </div>
                         </div>
 
-                        <!-- Quick Rating -->
-                        <div class="quick-rating">
+                        <!-- Quick Rating dimatikan -->
+                        <!-- <div class="quick-rating">
                             <div class="rating-title">Rating Saya:</div>
                             <div class="rating-stars-large" id="quickRating" data-current-rating="<?php echo $user_review['rating'] ?? 0; ?>">
                                 <?php 
@@ -204,7 +210,7 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                                     Klik bintang untuk memberi rating
                                 <?php endif; ?>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
 
