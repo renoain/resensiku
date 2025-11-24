@@ -69,7 +69,6 @@ $recent_books = $db->query("
             <div class="admin-header-content">
                 <div class="admin-brand">
                     <img src="../assets/images/logo/Resensiku.png" alt="Resensiku" class="admin-logo">
-                    <h1>Admin Dashboard</h1>
                 </div>
                 <div class="admin-nav">
                     <a href="books.php" class="btn btn-primary">

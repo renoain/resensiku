@@ -105,34 +105,53 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/home.css">
     <link rel="stylesheet" href="assets/css/books.css">
+    <link rel="stylesheet" href="assets/css/header.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Header -->
-    <header class="user-header">
-        <div class="header-content">
-            <!-- Logo & Title -->
-            <div class="logo-section">
-                <a href="index.php">
-                    <img src="assets/images/logo/Resensiku.png" alt="Resensiku" class="logo">
-                </a>
-            </div>
+<!-- Header -->
+<header class="user-header">
+    <div class="header-content">
+        <!-- Logo - Pojok Kiri -->
+        <div class="logo-section">
+            <a href="index.php">
+                <img src="assets/images/logo/Resensiku.png" alt="Resensiku" class="logo">
+            </a>
+        </div>
 
-            <!-- Search Bar -->
-            <div class="search-section">
-                <form class="search-form" method="GET" action="books.php" id="searchForm">
-                    <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" name="search" placeholder="Cari buku, penulis, atau genre..." value="<?php echo htmlspecialchars($search); ?>">
-                    <!-- Hidden fields for selected genres -->
-                    <?php foreach ($genres as $selectedGenre): ?>
-                        <input type="hidden" name="genres[]" value="<?php echo htmlspecialchars($selectedGenre); ?>">
-                    <?php endforeach; ?>
-                </form>
-            </div>
+        <!-- Search Bar - Tengah -->
+        <div class="search-section">
+            <form class="search-form" method="GET" action="index.php">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" name="search" placeholder="Cari buku, penulis, atau genre..." value="<?php echo htmlspecialchars($search); ?>">
+            </form>
+        </div>
+
+        <!-- Navigation Menu & User - Kanan -->
+        <div class="right-section">
+            <!-- Navigation Menu -->
+            <nav class="main-nav">
+                <a href="index.php" class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
+                <a href="books.php" class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'books.php' ? 'active' : ''; ?>">
+                    <i class="fas fa-tags"></i>
+                    <span>Genre</span>
+                </a>
+                <a href="bookshelf.php" class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'bookshelf.php' ? 'active' : ''; ?>">
+                    <i class="fas fa-bookmark"></i>
+                    <span>Bookshelf</span>
+                </a>
+                <a href="communities.php" class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'communities.php' ? 'active' : ''; ?>">
+                    <i class="fas fa-users"></i>
+                    <span>Community</span>
+                </a>
+            </nav>
 
             <!-- User Navigation -->
-            <nav class="user-nav">
+            <div class="user-nav">
                 <div class="user-dropdown">
                     <button class="user-trigger">
                         <div class="user-avatar"><?php echo $user_initials; ?></div>
@@ -140,7 +159,7 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                         <i class="fas fa-chevron-down"></i>
                     </button>
                     <div class="dropdown-menu">
-                        <a href="books.php" class="dropdown-item active">
+                        <a href="books.php" class="dropdown-item">
                             <i class="fas fa-tags"></i>
                             <span>Jelajahi Genre</span>
                         </a>
@@ -148,10 +167,10 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                             <i class="fas fa-bookmark"></i>
                             <span>Bookshelf Saya</span>
                         </a>
-                        <!-- <a href="profile.php" class="dropdown-item">
-                            <i class="fas fa-user"></i>
-                            <span>Profil Saya</span>
-                        </a> -->
+                        <a href="communities.php" class="dropdown-item">
+                            <i class="fas fa-users"></i>
+                             <span>Bookshelf Saya</span>
+                        </a>
                         <div class="dropdown-divider"></div>
                         <a href="logout.php" class="dropdown-item">
                             <i class="fas fa-sign-out-alt"></i>
@@ -159,9 +178,10 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                         </a>
                     </div>
                 </div>
-            </nav>
+            </div>
         </div>
-    </header>
+    </div>
+</header>
 
     <!-- Main Content -->
     <main class="main-content">
