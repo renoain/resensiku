@@ -102,6 +102,10 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
             <!-- Navigation -->
             <div class="right-section">
                 <nav class="main-nav">
+                    <a href="index.php" class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
                     <a href="books.php" class="nav-item">
                         <i class="fas fa-tags"></i>
                         <span>Genre</span>

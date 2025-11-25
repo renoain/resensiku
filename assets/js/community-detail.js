@@ -397,6 +397,124 @@ function closeImageModal() {
   }
 }
 
+// Post Menu Functions
+function togglePostMenu(postId) {
+  const menu = document.getElementById(`post-menu-${postId}`);
+  const allMenus = document.querySelectorAll(".post-menu");
+
+  // Close all other menus
+  allMenus.forEach((m) => {
+    if (m.id !== `post-menu-${postId}`) {
+      m.classList.remove("show");
+    }
+  });
+
+  // Toggle current menu
+  menu.classList.toggle("show");
+}
+
+// Close menus when clicking outside
+document.addEventListener("click", function (e) {
+  if (!e.target.closest(".post-actions-dropdown")) {
+    const allMenus = document.querySelectorAll(".post-menu");
+    allMenus.forEach((menu) => {
+      menu.classList.remove("show");
+    });
+  }
+});
+
+// Delete Post Function
+async function deletePost(postId, postTitle = "post ini") {
+  if (
+    !confirm(
+      `Apakah Anda yakin ingin menghapus ${postTitle}? Tindakan ini tidak dapat dibatalkan.`
+    )
+  ) {
+    return;
+  }
+
+  try {
+    const response = await fetch("actions/delete_post.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ post_id: postId }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showAlert("success", "Post berhasil dihapus!");
+      // Remove post from DOM
+      const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+      if (postElement) {
+        postElement.style.opacity = "0";
+        postElement.style.transform = "translateX(-100%)";
+        setTimeout(() => {
+          postElement.remove();
+          // Check if no posts left
+          checkEmptyPosts();
+        }, 300);
+      } else {
+        // If element not found, reload page
+        setTimeout(() => {
+          location.reload();
+        }, 1000);
+      }
+    } else {
+      showAlert("error", "Gagal menghapus post: " + result.message);
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    showAlert("error", "Terjadi kesalahan saat menghapus post");
+  }
+}
+
+// Check if posts container is empty
+function checkEmptyPosts() {
+  const postsContainer = document.querySelector(".posts-feed");
+  const postCards = postsContainer.querySelectorAll(".post-card");
+
+  if (postCards.length === 0) {
+    // Show empty state
+    const emptyState = document.createElement("div");
+    emptyState.className = "posts-empty";
+    emptyState.innerHTML = `
+            <div class="empty-icon">
+                <i class="fas fa-comments"></i>
+            </div>
+            <h3>Belum Ada Diskusi</h3>
+            <p>Jadilah yang pertama memulai diskusi di community ini</p>
+            <button class="btn btn-primary btn-lg" onclick="openCreatePostModal()">
+                <i class="fas fa-plus"></i>
+                Mulai Diskusi Pertama
+            </button>
+        `;
+
+    // Remove existing posts and add empty state
+    const existingPosts = postsContainer.querySelectorAll(
+      ".post-card, .posts-empty"
+    );
+    existingPosts.forEach((el) => el.remove());
+
+    postsContainer.appendChild(emptyState);
+  }
+}
+
+// Add keyboard shortcut for delete (Shift + Delete)
+document.addEventListener("keydown", function (e) {
+  if (e.shiftKey && e.key === "Delete") {
+    const focusedPost = document.querySelector(".post-card:focus-within");
+    if (focusedPost) {
+      const postId = focusedPost.dataset.postId;
+      const postTitle =
+        focusedPost.querySelector(".post-title")?.textContent || "post ini";
+      deletePost(postId, postTitle);
+    }
+  }
+});
+
 // Navigation
 function goBackToCommunities() {
   window.location.href = "communities.php";

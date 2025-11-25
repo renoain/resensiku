@@ -87,6 +87,7 @@ CREATE TABLE community_posts (
     title VARCHAR(500),
     content TEXT,
     image VARCHAR(255),
+    is_deleted BOOLEAN DEFAULT FALSE;
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (community_id) REFERENCES communities(id),

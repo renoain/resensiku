@@ -50,11 +50,12 @@ $postsStmt = $db->prepare("
     FROM community_posts p
     LEFT JOIN users u ON p.user_id = u.id
     LEFT JOIN post_comments pc ON p.id = pc.post_id
-    WHERE p.community_id = ?
+    WHERE p.community_id = ? AND p.is_deleted = FALSE
     GROUP BY p.id
     ORDER BY p.created_at DESC
     LIMIT $limit OFFSET $offset
 ");
+
 $postsStmt->execute([$community_id]);
 $posts = $postsStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -102,6 +103,10 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
             <!-- Navigation -->
             <div class="right-section">
                 <nav class="main-nav">
+                    <a href="index.php" class="nav-item <?php echo basename($_SERVER['PHP_SELF']) == 'index.php' ? 'active' : ''; ?>">
+                    <i class="fas fa-home"></i>
+                    <span>Home</span>
+                </a>
                     <a href="books.php" class="nav-item">
                         <i class="fas fa-tags"></i>
                         <span>Genre</span>
@@ -134,9 +139,9 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                                 <span>Bookshelf Saya</span>
                             </a>
                             <a href="communities.php" class="dropdown-item">
-                            <i class="fas fa-users"></i>
-                            <span>Bookshelf Saya</span>
-                        </a>
+                                <i class="fas fa-users"></i>
+                                <span>Komunitas Saya</span>
+                            </a>
                             <div class="dropdown-divider"></div>
                             <a href="logout.php" class="dropdown-item">
                                 <i class="fas fa-sign-out-alt"></i>
@@ -237,6 +242,21 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                                         <span class="post-date"><?php echo date('d M Y H:i', strtotime($post['created_at'])); ?></span>
                                     </div>
                                 </div>
+                                
+                                <!-- Tombol Delete (hanya tampil untuk author atau admin) -->
+                                <?php if ($post['author_id'] == $_SESSION['user_id'] || $community['user_role'] === 'admin' || $community['user_role'] === 'moderator'): ?>
+                                <div class="post-actions-dropdown">
+                                    <button class="post-menu-btn" onclick="togglePostMenu(<?php echo $post['id']; ?>)">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <div class="post-menu" id="post-menu-<?php echo $post['id']; ?>">
+                                        <button class="post-menu-item post-menu-delete" onclick="deletePost(<?php echo $post['id']; ?>, '<?php echo htmlspecialchars($post['title'] ?: 'post ini'); ?>')">
+                                            <i class="fas fa-trash"></i>
+                                            Hapus Post
+                                        </button>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
                             </div>
                             
                             <div class="post-content">
@@ -350,7 +370,7 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
                     </div>
                     <div class="form-group">
                         <label for="postContent">Konten *</label>
-                        <textarea id="postContent" name="content" rows="6" placeholder="Apa yang ingin Anda diskusikan?" required></textarea>
+                        <textarea id="postContent" name="content" rows="6" placeholder="Apa yang ingin Anda diskusikan?"></textarea>
                     </div>
                     <div class="form-group">
                         <label for="postImage">Gambar (Opsional)</label>
