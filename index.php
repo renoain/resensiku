@@ -184,7 +184,7 @@ $user_initials = strtoupper(substr(explode(' ', $user_name)[0], 0, 1));
             <?php if (!empty($featured_books) && empty($search)): ?>
             <section class="books-section">
                 <div class="section-header">
-                    <h2 class="section-title">Buku Unggulan</h2>
+                    <h2 class="section-title">Buku Populer</h2>
                     <a href="books.php" class="view-all">Lihat Semua <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="books-grid">
